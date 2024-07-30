@@ -6,19 +6,23 @@
 	let { textToAnimate }: Props = $props();
 
 	let titleContainer: HTMLElement | null = null;
+	let subtitleContainer: HTMLElement | null = null;
 
 	function onLetterEffectAnimationEnd(index: number) {
 		setTimeout(() => {
+			// if (index === textToAnimate.length - 1) {
+			// 	titleContainer?.classList.add('dissapear');
+			// }
 			if (index === textToAnimate.length - 1) {
-				titleContainer?.classList.add('dissapear');
+				subtitleContainer?.classList.add('appear');
 			}
-		}, 1000);
+		}, 500);
 	}
 </script>
 
 <h1
 	bind:this={titleContainer}
-	class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-9xl font-bold"
+	class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-9xl font-bold text-black"
 >
 	{#each textToAnimate as letter, i}
 		{#if letter !== ' '}
@@ -30,7 +34,7 @@
 				<div
 					class="letter-effect"
 					style="animation-delay: {i * 0.1}s"
-					on:animationend={() => onLetterEffectAnimationEnd(i)}
+					onanimationend={() => onLetterEffectAnimationEnd(i)}
 				>
 					{letter}
 				</div>
@@ -39,9 +43,44 @@
 			<span>&nbsp;</span>
 		{/if}
 	{/each}
+	<div
+		bind:this={subtitleContainer}
+		class="grid__container absolute left-1/2 grid -translate-x-1/2 text-8xl text-white opacity-0"
+		onanimationend={() => subtitleContainer?.classList.add('active')}
+	>
+		<span>I</span>
+		<span class="inline-block overflow-x-clip px-2 text-red-700">Trapped in Waifuverse</span>
+		<span>I</span>
+	</div>
 </h1>
 
 <style>
+	.grid__container {
+		grid-template-columns: 1fr 0 1fr;
+		transition: 1s ease;
+	}
+
+	:global(.grid__container.active) {
+		grid-template-columns: auto 1fr auto;
+	}
+
+	:global(.grid__container.appear) {
+		animation: subtitle-appear 1s ease-in-out;
+		animation-fill-mode: forwards;
+		opacity: 1;
+	}
+
+	@keyframes subtitle-appear {
+		from {
+			opacity: 0;
+			filter: blur(20px);
+		}
+		to {
+			opacity: 1;
+			filter: blur(0px);
+		}
+	}
+
 	.letter-appear {
 		animation: appear 0.5s ease-in-out;
 		animation-fill-mode: forwards;
