@@ -55,7 +55,8 @@ const config: Config = {
 				sm: "calc(var(--radius) - 4px)"
 			},
 			fontFamily: {
-				dancing: "var(--font-dancing)",
+				comfortaa: ["Comfortaa", ...fontFamily.sans],
+				dancing: ["Dancing Script", ...fontFamily.serif],
 				sans: [...fontFamily.sans]
 			},
 		}

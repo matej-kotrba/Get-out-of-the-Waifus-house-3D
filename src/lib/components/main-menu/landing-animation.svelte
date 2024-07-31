@@ -10,64 +10,81 @@
 
 	function onLetterEffectAnimationEnd(index: number) {
 		setTimeout(() => {
-			// if (index === textToAnimate.length - 1) {
-			// 	titleContainer?.classList.add('dissapear');
-			// }
 			if (index === textToAnimate.length - 1) {
+				titleContainer?.classList.add('dissapear');
 				subtitleContainer?.classList.add('appear');
 			}
 		}, 500);
 	}
 </script>
 
-<h1
-	bind:this={titleContainer}
-	class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-9xl font-bold text-black"
->
-	{#each textToAnimate as letter, i}
-		{#if letter !== ' '}
-			<div
-				class="letter-appear inline-block"
-				style="--letter: {letter}; animation-delay: {i * 0.1}s"
-			>
-				<span>{letter}</span>
-				<div
-					class="letter-effect"
-					style="animation-delay: {i * 0.1}s"
-					onanimationend={() => onLetterEffectAnimationEnd(i)}
-				>
-					{letter}
-				</div>
-			</div>
-		{:else}
-			<span>&nbsp;</span>
-		{/if}
-	{/each}
-	<div
-		bind:this={subtitleContainer}
-		class="grid__container absolute left-1/2 grid -translate-x-1/2 text-8xl text-white opacity-0"
-		onanimationend={() => subtitleContainer?.classList.add('active')}
+<div>
+	<h1
+		bind:this={titleContainer}
+		class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-9xl font-bold text-black"
 	>
-		<span>I</span>
-		<span class="inline-block overflow-x-clip px-2 text-red-700">Trapped in Waifuverse</span>
-		<span>I</span>
-	</div>
-</h1>
+		{#each textToAnimate as letter, i}
+			{#if letter !== ' '}
+				<div
+					class="letter-appear inline-block"
+					style="--letter: {letter}; animation-delay: {i * 0.1}s"
+				>
+					<span>{letter}</span>
+					<div
+						class="letter-effect"
+						style="animation-delay: {i * 0.1}s"
+						onanimationend={() => onLetterEffectAnimationEnd(i)}
+					>
+						{letter}
+					</div>
+				</div>
+			{:else}
+				<span>&nbsp;</span>
+			{/if}
+		{/each}
+	</h1>
+	<h2
+		bind:this={subtitleContainer}
+		class="subtitle absolute left-1/2 top-1/2 grid -translate-x-1/2 -translate-y-1/2 items-center text-[20rem] text-white opacity-0"
+		onanimationend={() =>
+			setTimeout(() => {
+				subtitleContainer?.classList.add('active');
+			}, 500)}
+	>
+		<span class="left absolute right-1/2">I</span>
+		<span
+			class="subtitle-text inline-block overflow-x-clip px-2 text-6xl text-red-700 opacity-0 duration-300"
+			>Trapped in Waifuverse</span
+		>
+		<span class="right absolute left-1/2">I</span>
+	</h2>
+</div>
 
 <style>
-	.grid__container {
-		grid-template-columns: 1fr 0 1fr;
-		transition: 1s ease;
+	:global(.subtitle.appear) {
+		animation: subtitle-appear 1s ease-in-out forwards;
 	}
 
-	:global(.grid__container.active) {
-		grid-template-columns: auto 1fr auto;
+	.subtitle .left {
+		transition: 500ms ease-in-out;
 	}
 
-	:global(.grid__container.appear) {
-		animation: subtitle-appear 1s ease-in-out;
-		animation-fill-mode: forwards;
-		opacity: 1;
+	.subtitle .right {
+		transition: 500ms ease-in-out;
+	}
+
+	:global(.subtitle.appear.active) {
+		& .subtitle-text {
+			opacity: 1;
+		}
+
+		& .left {
+			right: 100%;
+		}
+
+		& .right {
+			left: 100%;
+		}
 	}
 
 	@keyframes subtitle-appear {
