@@ -1,12 +1,16 @@
 <script lang="ts">
 	type Props = {
-		onClick: () => void;
+		onClick?: (
+			e: MouseEvent & {
+				currentTarget: EventTarget & HTMLButtonElement;
+			}
+		) => void;
 		children: any;
 	};
 
-	let { children } = $props();
+	let { children, onClick }: Props = $props();
 </script>
 
-<button>
+<button onclick={onClick} type="button" class="border border-white px-8 py-4 text-6xl">
 	{@render children()}
 </button>
