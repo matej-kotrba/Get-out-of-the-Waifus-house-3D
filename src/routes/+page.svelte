@@ -9,6 +9,5 @@
 	{textToAnimate}
 </h2> -->
 <!-- <LandingAnimation {textToAnimate} /> -->
-<div class="grid h-screen place-content-center">
-	<Menu />
-</div>
+
+<Menu />
