@@ -2,7 +2,7 @@
 	import LandingAnimation from '$lib/components/main-menu/landing-animation.svelte';
 	import Menu from '$lib/components/main-menu/menu.svelte';
 	import { CharacterControls } from '$lib/three/characterControls.svelte';
-	import { initialize, keypressListener } from '$lib/three/setup.svelte';
+	import { initialize, KeypressListener, keypressListener } from '$lib/three/setup.svelte';
 	import { onMount } from 'svelte';
 	import * as THREE from 'three';
 	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -17,12 +17,17 @@
 		const plane = new THREE.PlaneGeometry(10, 10);
 		const material = new THREE.MeshBasicMaterial({ color: 0xaa4400, side: THREE.DoubleSide });
 		const planeMesh = new THREE.Mesh(plane, material);
+		planeMesh.receiveShadow = true;
 		planeMesh.rotation.x = Math.PI / 2;
 		scene.add(planeMesh);
 
-		const keys = keypressListener();
+		// const keys = keypressListener();
+		// $effect(() => {
+		// 	console.log(keys);
+		// });
+		let keys = new KeypressListener();
 		$effect(() => {
-			console.log(keys());
+			console.log(keys.keys);
 		});
 
 		let charactersControls: CharacterControls;
@@ -43,7 +48,14 @@
 					animationsMap.set(animation.name, mixer.clipAction(animation));
 				});
 
-			charactersControls = new CharacterControls(model, mixer, animationsMap, controls, camera);
+			charactersControls = new CharacterControls(
+				model,
+				mixer,
+				animationsMap,
+				controls,
+				camera,
+				'idle'
+			);
 		});
 
 		function update() {

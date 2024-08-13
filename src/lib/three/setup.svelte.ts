@@ -38,21 +38,30 @@ export function initialize(canvas: HTMLCanvasElement) {
   return { renderer, scene, camera, controls };
 }
 
+let keys = $state(0);
 export function keypressListener() {
-  let keys: Record<string, boolean> = $state<Record<string, boolean>>({});
-  window.addEventListener('keydown', (event) => {
-    keys[event.key] = true;
-  });
-  window.addEventListener('keyup', (event) => {
-    keys[event.key] = false;
+  // const keys = $state<Record<string, boolean>>({});
+
+  // window.addEventListener('keydown', (event) => {
+  //   keys[event.key] = true;
+  // });
+  // window.addEventListener('keyup', (event) => {
+  //   keys[event.key] = false;
+  // });
+
+  window.addEventListener('keydown', () => {
+    keys++;
   });
 
-  return {
-    get keys() {
-      return keys;
-    },
-    set keys(newKeys) {
-      keys = newKeys;
-    }
+  return keys;
+}
+
+export class KeypressListener {
+  keys = $state(0);
+
+  constructor() {
+    window.addEventListener('keydown', () => {
+      this.keys++;
+    });
   }
 }
