@@ -17,6 +17,7 @@
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@tailwindcss/typography": "^0.5.13",
 		"@types/eslint": "^9.6.0",
+		"@types/three": "^0.167.1",
 		"autoprefixer": "^10.4.19",
 		"eslint": "^9.0.0",
 		"eslint-config-prettier": "^9.1.0",
@@ -37,6 +38,7 @@
 	"dependencies": {
 		"clsx": "^2.1.1",
 		"tailwind-merge": "^2.4.0",
-		"tailwind-variants": "^0.2.1"
+		"tailwind-variants": "^0.2.1",
+		"three": "^0.167.1"
 	}
 }
