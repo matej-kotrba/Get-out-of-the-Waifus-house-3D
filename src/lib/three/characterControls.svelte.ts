@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { OrbitControls } from 'three/examples/jsm/Addons.js';
+import type { KeypressListenerKeys } from './setup.svelte';
 
 export class CharacterControls {
 
@@ -10,6 +11,10 @@ export class CharacterControls {
   camera: THREE.Camera
 
   currentAction: string;
+
+  walkDirection = new THREE.Vector3();
+  rotateAngle = new THREE.Vector3(0, 1, 0);
+  rotateQuaternion = new THREE.Quaternion();
 
   constructor(model: THREE.Group, mixer: THREE.AnimationMixer, animations: Map<string, THREE.AnimationAction>, orbitControls: OrbitControls, camera: THREE.Camera, currentAction: string) {
     this.model = model;
@@ -25,5 +30,9 @@ export class CharacterControls {
     })
     this.orbitControls = orbitControls;
     this.camera = camera;
+  }
+
+  public update(delta: number, keys: KeypressListenerKeys) {
+    this.mixer.update(delta)
   }
 }

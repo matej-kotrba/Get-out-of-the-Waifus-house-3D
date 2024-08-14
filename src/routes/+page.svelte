@@ -2,8 +2,8 @@
 	import LandingAnimation from '$lib/components/main-menu/landing-animation.svelte';
 	import Menu from '$lib/components/main-menu/menu.svelte';
 	import { CharacterControls } from '$lib/three/characterControls.svelte';
-	import { initialize, KeypressListener, keypressListener } from '$lib/three/setup.svelte';
-	import { onMount } from 'svelte';
+	import { initialize, keypressListener } from '$lib/three/setup.svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
 	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
@@ -21,14 +21,7 @@
 		planeMesh.rotation.x = Math.PI / 2;
 		scene.add(planeMesh);
 
-		// const keys = keypressListener();
-		// $effect(() => {
-		// 	console.log(keys);
-		// });
-		let keys = new KeypressListener();
-		$effect(() => {
-			console.log(keys.keys);
-		});
+		const keyListener = keypressListener();
 
 		let charactersControls: CharacterControls;
 		new GLTFLoader().load('/models/Soldier.glb', (gltf) => {
@@ -54,17 +47,27 @@
 				animationsMap,
 				controls,
 				camera,
-				'idle'
+				'Idle'
 			);
 		});
 
+		const clock = new THREE.Clock();
+		let animationFrameLoop: number = 0;
 		function update() {
+			let mixerUpdateDelta = clock.getDelta();
+			charactersControls?.update(mixerUpdateDelta, keyListener.keys);
+
 			controls.update();
 			renderer.render(scene, camera);
-			requestAnimationFrame(update);
+			animationFrameLoop = requestAnimationFrame(update);
 		}
 
 		update();
+
+		return () => {
+			keyListener.destroy();
+			if (animationFrameLoop) cancelAnimationFrame(animationFrameLoop);
+		};
 	});
 </script>
 
