@@ -47,6 +47,8 @@ export class CharacterControls {
       play = "Run"
     } else if (directionPressed) {
       play = "Walk"
+    } else if (keys["q"]) {
+      play = "MeleeAttack"
     } else {
       play = "Idle"
     }

@@ -5,6 +5,7 @@
 	import { initialize, keypressListener } from '$lib/three/setup.svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
+	import { FBXLoader } from 'three/examples/jsm/Addons.js';
 	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 	const textToAnimate = 'Get out of the Waifus house';
@@ -41,6 +42,15 @@
 					animationsMap.set(animation.name, mixer.clipAction(animation));
 				});
 
+			const loader = new FBXLoader();
+			loader.setPath('/animations/');
+			loader.load('untitled.fbx', (a) => {
+				console.log(a);
+				const clip = a.animations[0];
+				const clipAction = mixer.clipAction(clip);
+				animationsMap.set('MeleeAttack', clipAction);
+			});
+
 			charactersControls = new CharacterControls(
 				model,
 				mixer,
@@ -49,25 +59,25 @@
 				camera,
 				'Idle'
 			);
+
+			const clock = new THREE.Clock();
+			let animationFrameLoop: number = 0;
+			function update() {
+				let mixerUpdateDelta = clock.getDelta();
+				charactersControls?.update(mixerUpdateDelta, keyListener.keys);
+
+				controls.update();
+				renderer.render(scene, camera);
+				animationFrameLoop = requestAnimationFrame(update);
+			}
+
+			update();
+
+			return () => {
+				keyListener.destroy();
+				if (animationFrameLoop) cancelAnimationFrame(animationFrameLoop);
+			};
 		});
-
-		const clock = new THREE.Clock();
-		let animationFrameLoop: number = 0;
-		function update() {
-			let mixerUpdateDelta = clock.getDelta();
-			charactersControls?.update(mixerUpdateDelta, keyListener.keys);
-
-			controls.update();
-			renderer.render(scene, camera);
-			animationFrameLoop = requestAnimationFrame(update);
-		}
-
-		update();
-
-		return () => {
-			keyListener.destroy();
-			if (animationFrameLoop) cancelAnimationFrame(animationFrameLoop);
-		};
 	});
 </script>
 
