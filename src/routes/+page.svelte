@@ -7,6 +7,7 @@
 	import * as THREE from 'three';
 	import { FBXLoader } from 'three/examples/jsm/Addons.js';
 	import { GUI } from 'dat.gui';
+	import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -45,7 +46,7 @@
 		const loader = new FBXLoader(loadingManager);
 		loader.setPath('/');
 		loader.load(
-			'models/bot.fbx',
+			'models/characters/bot.fbx',
 			(fbxTemp) => {
 				fbx = fbxTemp;
 				fbxTemp.traverse((c) => {
@@ -75,9 +76,61 @@
 					animationsMap.set(animName, action);
 				}
 
+				// Loading animations
 				loader.load('animations/idle.fbx', (a) => onLoad('idle', a));
 				loader.load('animations/walking.fbx', (a) => onLoad('walk', a));
+				loader.load('animations/walking-with-item.fbx', (a) => onLoad('walk-with-item', a));
 				loader.load('animations/running.fbx', (a) => onLoad('run', a));
+				loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
+
+				// Loading object models
+				loader.setPath('/models/objects/machete/');
+				loader.load('machete_1k.fbx', (machete) => {
+					const textureLoader = new THREE.TextureLoader();
+					const exrLoader = new EXRLoader();
+					textureLoader.setPath('/models/objects/machete/textures/');
+					exrLoader.setPath('/models/objects/machete/textures/');
+
+					machete.scale.setScalar(1);
+
+					const diffuseMap = textureLoader.load('machete_diff_1k.jpg');
+					const metalMap = exrLoader.load('machete_metal_1k.exr');
+					const notGlMap = exrLoader.load('machete_nor_gl_1k.exr');
+					const roughMap = exrLoader.load('machete_rough_1k.exr');
+
+					machete.traverse((child) => {
+						let childRetyped = child as THREE.Mesh;
+						if (childRetyped.isMesh) {
+							// Pokud má model materiál, připojte k němu texturu
+							if (childRetyped.material) {
+								const material = childRetyped.material as THREE.MeshStandardMaterial;
+								material.map = diffuseMap;
+								material.metalnessMap = metalMap;
+								material.normalMap = notGlMap;
+								material.roughnessMap = roughMap;
+								material.needsUpdate = true;
+							}
+						}
+					});
+
+					const rightHand = fbx.getObjectByName('mixamorigRightHandIndex1');
+					if (rightHand) {
+						rightHand.add(machete);
+						machete.position.x += 7.6;
+						machete.position.z += 3.2;
+
+						machete.rotation.x = -1.2;
+						machete.rotation.y = 0;
+						machete.rotation.z = -1.6;
+					}
+
+					// gui.add(machete.position, 'x', -10, 10);
+					// gui.add(machete.position, 'y', -10, 10);
+					// gui.add(machete.position, 'z', -10, 10);
+					// gui.add(machete.rotation, 'x', -Math.PI, Math.PI);
+					// gui.add(machete.rotation, 'y', -Math.PI, Math.PI);
+					// gui.add(machete.rotation, 'z', -Math.PI, Math.PI);
+				});
 
 				const clock = new THREE.Clock();
 				let animationFrameLoop: number = 0;

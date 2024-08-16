@@ -43,12 +43,13 @@ export class CharacterControls {
     const directionPressed = DIRECTIONS.some(key => keys[key] === true)
 
     let play = ""
-    if (directionPressed && keys["shift"]) {
+    if (keys["q"]) {
+      play = "meleeAttack"
+    }
+    else if (directionPressed && keys["shift"]) {
       play = "run"
     } else if (directionPressed) {
-      play = "walk"
-    } else if (keys["q"]) {
-      play = "MeleeAttack"
+      play = "walk-with-item"
     } else {
       play = "idle"
     }
