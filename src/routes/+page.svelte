@@ -6,7 +6,6 @@
 	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
 	import { FBXLoader } from 'three/examples/jsm/Addons.js';
-	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 	import { GUI } from 'dat.gui';
 
 	const textToAnimate = 'Get out of the Waifus house';
@@ -27,15 +26,32 @@
 
 		let charactersControls: CharacterControls;
 
-		const loader = new FBXLoader();
+		const animationsMap: Map<string, THREE.AnimationAction> = new Map();
+		let fbx = new THREE.Group<THREE.Object3DEventMap>();
+		let mixer = new THREE.AnimationMixer(fbx);
+
+		const loadingManager = new THREE.LoadingManager();
+		loadingManager.onLoad = () => {
+			charactersControls = new CharacterControls(
+				fbx,
+				mixer,
+				animationsMap,
+				controls,
+				camera,
+				'idle'
+			);
+		};
+
+		const loader = new FBXLoader(loadingManager);
 		loader.setPath('/');
 		loader.load(
 			'models/bot.fbx',
-			(fbx) => {
-				fbx.traverse((c) => {
+			(fbxTemp) => {
+				fbx = fbxTemp;
+				fbxTemp.traverse((c) => {
 					c.castShadow = true;
 				});
-				fbx.scale.setScalar(0.01);
+				fbxTemp.scale.setScalar(0.01);
 				// fbx.rotateY(Math.PI);
 
 				const gui = new GUI();
@@ -48,30 +64,20 @@
 				// 	fbx.scale.setScalar(value);
 				// });
 
-				scene.add(fbx);
+				scene.add(fbxTemp);
 
-				const mixer = new THREE.AnimationMixer(fbx);
-				const animationsMap: Map<string, THREE.AnimationAction> = new Map();
+				mixer = new THREE.AnimationMixer(fbx);
 
 				function onLoad(animName: string, anim: THREE.Group<THREE.Object3DEventMap>) {
 					const clip = anim.animations[0];
 					const action = mixer.clipAction(clip);
 
 					animationsMap.set(animName, action);
-					console.log(animationsMap);
 				}
 
+				loader.load('animations/idle.fbx', (a) => onLoad('idle', a));
 				loader.load('animations/walking.fbx', (a) => onLoad('walk', a));
 				loader.load('animations/running.fbx', (a) => onLoad('run', a));
-
-				charactersControls = new CharacterControls(
-					fbx,
-					mixer,
-					animationsMap,
-					controls,
-					camera,
-					'idle'
-				);
 
 				const clock = new THREE.Clock();
 				let animationFrameLoop: number = 0;
@@ -94,60 +100,6 @@
 			undefined,
 			(e) => console.log(e)
 		);
-
-		// new FBXLoader().load('/models/Soldier.glb', (gltf) => {
-		// 	const model = gltf.scene;
-		// 	model.traverse((object) => {
-		// 		object.castShadow = true;
-		// 	});
-		// 	model.rotateY(Math.PI);
-		// 	scene.add(model);
-
-		// 	const gltfAnimations = gltf.animations;
-		// 	const mixer = new THREE.AnimationMixer(model);
-		// 	const animationsMap: Map<string, THREE.AnimationAction> = new Map();
-		// 	gltfAnimations
-		// 		.filter((a) => a.name !== 'TPose')
-		// 		.forEach((animation) => {
-		// 			animationsMap.set(animation.name, mixer.clipAction(animation));
-		// 		});
-
-		// 	const loader = new FBXLoader();
-		// 	loader.setPath('/animations/');
-		// 	loader.load('untitled.fbx', (a) => {
-		// 		console.log(a);
-		// 		const clip = a.animations[0];
-		// 		const clipAction = mixer.clipAction(clip);
-		// 		animationsMap.set('MeleeAttack', clipAction);
-		// 	});
-
-		// 	charactersControls = new CharacterControls(
-		// 		model,
-		// 		mixer,
-		// 		animationsMap,
-		// 		controls,
-		// 		camera,
-		// 		'Idle'
-		// 	);
-
-		// 	const clock = new THREE.Clock();
-		// 	let animationFrameLoop: number = 0;
-		// 	function update() {
-		// 		let mixerUpdateDelta = clock.getDelta();
-		// 		charactersControls?.update(mixerUpdateDelta, keyListener.keys);
-
-		// 		controls.update();
-		// 		renderer.render(scene, camera);
-		// 		animationFrameLoop = requestAnimationFrame(update);
-		// 	}
-
-		// 	update();
-
-		// 	return () => {
-		// 		keyListener.destroy();
-		// 		if (animationFrameLoop) cancelAnimationFrame(animationFrameLoop);
-		// 	};
-		// });
 	});
 </script>
 

@@ -43,7 +43,7 @@ export class CharacterControls {
     const directionPressed = DIRECTIONS.some(key => keys[key] === true)
 
     let play = ""
-    if (directionPressed && keys["Shift"]) {
+    if (directionPressed && keys["shift"]) {
       play = "run"
     } else if (directionPressed) {
       play = "walk"
@@ -69,7 +69,7 @@ export class CharacterControls {
       const angleCameraDirection = Math.atan2(this.camera.position.x - this.model.position.x, this.camera.position.z - this.model.position.z)
       const directionOffset = this.dirationOffset(keys);
 
-      this.rotateQuaternion.setFromAxisAngle(this.rotateAngle, angleCameraDirection + directionOffset)
+      this.rotateQuaternion.setFromAxisAngle(this.rotateAngle, angleCameraDirection + directionOffset + Math.PI)
       this.model.quaternion.rotateTowards(this.rotateQuaternion, 0.05)
 
       this.camera.getWorldDirection(this.walkDirection);

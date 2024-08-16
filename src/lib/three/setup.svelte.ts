@@ -44,11 +44,11 @@ export function keypressListener() {
   const keys: KeypressListenerKeys = {}
 
   const onKeydown = (event: KeyboardEvent) => {
-    keys[event.key] = true;
+    keys[event.key.toLowerCase()] = true;
   }
 
   const onKeyup = (event: KeyboardEvent) => {
-    keys[event.key] = false;
+    keys[event.key.toLowerCase()] = false;
   }
 
   window.addEventListener('keydown', onKeydown);
