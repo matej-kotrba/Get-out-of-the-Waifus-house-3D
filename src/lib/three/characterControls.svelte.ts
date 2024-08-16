@@ -44,13 +44,13 @@ export class CharacterControls {
 
     let play = ""
     if (directionPressed && keys["Shift"]) {
-      play = "Run"
+      play = "run"
     } else if (directionPressed) {
-      play = "Walk"
+      play = "walk"
     } else if (keys["q"]) {
       play = "MeleeAttack"
     } else {
-      play = "Idle"
+      play = "idle"
     }
 
     if (this.currentAction !== play) {
@@ -65,7 +65,7 @@ export class CharacterControls {
 
     this.mixer.update(delta)
 
-    if (this.currentAction === "Run" || this.currentAction === "Walk") {
+    if (this.currentAction === "run" || this.currentAction === "walk") {
       const angleCameraDirection = Math.atan2(this.camera.position.x - this.model.position.x, this.camera.position.z - this.model.position.z)
       const directionOffset = this.dirationOffset(keys);
 
@@ -77,7 +77,7 @@ export class CharacterControls {
       this.walkDirection.normalize()
       this.walkDirection.applyAxisAngle(this.rotateAngle, directionOffset);
 
-      const velocity = this.currentAction === "Run" ? this.runVelocity : this.walkVelocity;
+      const velocity = this.currentAction === "run" ? this.runVelocity : this.walkVelocity;
 
       const moveX = this.walkDirection.x * velocity * delta;
       const moveZ = this.walkDirection.z * velocity * delta;
