@@ -1,12 +1,15 @@
 <script lang="ts">
 	import LandingAnimation from '$lib/components/main-menu/landing-animation.svelte';
 	import Menu from '$lib/components/main-menu/menu.svelte';
-	import { CharacterControls } from '$lib/three/characterControls.svelte';
+	import {
+		CharacterControls,
+		type CharacterAnimationsMap
+	} from '$lib/three/characterControls.svelte';
 	import { initialize, keypressListener } from '$lib/three/setup.svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
-	import { FBXLoader } from 'three/examples/jsm/Addons.js';
 	import { GUI } from 'dat.gui';
+	import { FBXLoader } from 'three/examples/jsm/Addons.js';
 	import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 
 	const textToAnimate = 'Get out of the Waifus house';
@@ -27,7 +30,7 @@
 
 		let charactersControls: CharacterControls;
 
-		const animationsMap: Map<string, THREE.AnimationAction> = new Map();
+		const animationsMap: CharacterAnimationsMap = new Map();
 		let fbx = new THREE.Group<THREE.Object3DEventMap>();
 		let mixer = new THREE.AnimationMixer(fbx);
 
@@ -42,6 +45,7 @@
 				'idle'
 			);
 		};
+		loadingManager.addHandler(/\.exr$/i, new EXRLoader());
 
 		const loader = new FBXLoader(loadingManager);
 		loader.setPath('/');
@@ -84,34 +88,9 @@
 				loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
 
 				// Loading object models
-				loader.setPath('/models/objects/machete/');
+				loader.setPath('models/objects/machete/');
 				loader.load('machete_1k.fbx', (machete) => {
-					const textureLoader = new THREE.TextureLoader();
-					const exrLoader = new EXRLoader();
-					textureLoader.setPath('/models/objects/machete/textures/');
-					exrLoader.setPath('/models/objects/machete/textures/');
-
 					machete.scale.setScalar(1);
-
-					const diffuseMap = textureLoader.load('machete_diff_1k.jpg');
-					const metalMap = exrLoader.load('machete_metal_1k.exr');
-					const notGlMap = exrLoader.load('machete_nor_gl_1k.exr');
-					const roughMap = exrLoader.load('machete_rough_1k.exr');
-
-					machete.traverse((child) => {
-						let childRetyped = child as THREE.Mesh;
-						if (childRetyped.isMesh) {
-							// Pokud má model materiál, připojte k němu texturu
-							if (childRetyped.material) {
-								const material = childRetyped.material as THREE.MeshStandardMaterial;
-								material.map = diffuseMap;
-								material.metalnessMap = metalMap;
-								material.normalMap = notGlMap;
-								material.roughnessMap = roughMap;
-								material.needsUpdate = true;
-							}
-						}
-					});
 
 					const rightHand = fbx.getObjectByName('mixamorigRightHandIndex1');
 					if (rightHand) {

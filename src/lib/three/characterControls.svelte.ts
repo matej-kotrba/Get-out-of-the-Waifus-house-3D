@@ -2,17 +2,25 @@ import * as THREE from 'three';
 import type { OrbitControls } from 'three/examples/jsm/Addons.js';
 import type { KeypressListenerKeys } from './setup.svelte';
 
-const DIRECTIONS = ["a", "d", "w", "s"];
+const DIRECTIONS = {
+  forward: "w",
+  left: "a",
+  backward: "s",
+  right: "d"
+} as const;
+
+export type CharacterActions = "idle" | "run" | "walk" | "meleeAttack" | "walkWithItem";
+export type CharacterAnimationsMap = Map<CharacterActions, THREE.AnimationAction>;
 
 export class CharacterControls {
 
   model: THREE.Group
   mixer: THREE.AnimationMixer
-  animationsMap: Map<string, THREE.AnimationAction> = new Map()
+  animationsMap: CharacterAnimationsMap = new Map()
   orbitControls: OrbitControls
   camera: THREE.Camera
 
-  currentAction: string;
+  currentAction: CharacterActions;
 
   walkDirection = new THREE.Vector3();
   rotateAngle = new THREE.Vector3(0, 1, 0);
@@ -23,7 +31,7 @@ export class CharacterControls {
   runVelocity = 5;
   walkVelocity = 2;
 
-  constructor(model: THREE.Group, mixer: THREE.AnimationMixer, animations: Map<string, THREE.AnimationAction>, orbitControls: OrbitControls, camera: THREE.Camera, currentAction: string) {
+  constructor(model: THREE.Group, mixer: THREE.AnimationMixer, animations: CharacterAnimationsMap, orbitControls: OrbitControls, camera: THREE.Camera, currentAction: CharacterActions) {
     this.model = model;
     this.mixer = mixer;
     this.animationsMap = animations;
@@ -40,16 +48,16 @@ export class CharacterControls {
   }
 
   public update(delta: number, keys: KeypressListenerKeys) {
-    const directionPressed = DIRECTIONS.some(key => keys[key] === true)
+    const directionPressed = Object.values(DIRECTIONS).some(key => keys[key] === true)
 
-    let play = ""
+    let play: CharacterActions = "idle"
     if (keys["q"]) {
       play = "meleeAttack"
     }
     else if (directionPressed && keys["shift"]) {
       play = "run"
     } else if (directionPressed) {
-      play = "walk-with-item"
+      play = "walk"
     } else {
       play = "idle"
     }
@@ -66,26 +74,33 @@ export class CharacterControls {
 
     this.mixer.update(delta)
 
-    if (this.currentAction === "run" || this.currentAction === "walk") {
-      const angleCameraDirection = Math.atan2(this.camera.position.x - this.model.position.x, this.camera.position.z - this.model.position.z)
-      const directionOffset = this.dirationOffset(keys);
-
-      this.rotateQuaternion.setFromAxisAngle(this.rotateAngle, angleCameraDirection + directionOffset + Math.PI)
-      this.model.quaternion.rotateTowards(this.rotateQuaternion, 0.05)
-
-      this.camera.getWorldDirection(this.walkDirection);
-      this.walkDirection.y = 0;
-      this.walkDirection.normalize()
-      this.walkDirection.applyAxisAngle(this.rotateAngle, directionOffset);
+    if (this.isMobilityAction(this.currentAction)) {
+      this.updateCharacterRotation(keys)
 
       const velocity = this.currentAction === "run" ? this.runVelocity : this.walkVelocity;
-
       const moveX = this.walkDirection.x * velocity * delta;
       const moveZ = this.walkDirection.z * velocity * delta;
       this.model.position.x += moveX;
       this.model.position.z += moveZ;
       this.updateCameraTarget(moveX, moveZ)
     }
+  }
+
+  private isMobilityAction(action: CharacterActions) {
+    return action === "run" || action === "walk" || action === "walkWithItem"
+  }
+
+  private updateCharacterRotation(keys: KeypressListenerKeys) {
+    const angleCameraDirection = Math.atan2(this.camera.position.x - this.model.position.x, this.camera.position.z - this.model.position.z)
+    const directionOffset = this.dirationOffset(keys);
+
+    this.rotateQuaternion.setFromAxisAngle(this.rotateAngle, angleCameraDirection + directionOffset + Math.PI)
+    this.model.quaternion.rotateTowards(this.rotateQuaternion, 0.05)
+
+    this.camera.getWorldDirection(this.walkDirection);
+    this.walkDirection.y = 0;
+    this.walkDirection.normalize()
+    this.walkDirection.applyAxisAngle(this.rotateAngle, directionOffset);
   }
 
   private updateCameraTarget(moveX: number, moveZ: number) {
@@ -101,23 +116,23 @@ export class CharacterControls {
   private dirationOffset(keysPressed: KeypressListenerKeys) {
     let directionOffset = 0
 
-    if (keysPressed["w"]) {
-      if (keysPressed["a"]) {
+    if (keysPressed[DIRECTIONS.forward]) {
+      if (keysPressed[DIRECTIONS.left]) {
         directionOffset = Math.PI / 4
-      } else if (keysPressed["d"]) {
+      } else if (keysPressed[DIRECTIONS.right]) {
         directionOffset = Math.PI / -4
       }
-    } else if (keysPressed["s"]) {
-      if (keysPressed["a"]) {
+    } else if (keysPressed[DIRECTIONS.backward]) {
+      if (keysPressed[DIRECTIONS.left]) {
         directionOffset = Math.PI / 4 + Math.PI / 2
-      } else if (keysPressed["d"]) {
+      } else if (keysPressed[DIRECTIONS.right]) {
         directionOffset = Math.PI / -4 - Math.PI / 2
       } else {
         directionOffset = Math.PI
       }
-    } else if (keysPressed["a"]) {
+    } else if (keysPressed[DIRECTIONS.left]) {
       directionOffset = Math.PI / 2
-    } else if (keysPressed["d"]) {
+    } else if (keysPressed[DIRECTIONS.right]) {
       directionOffset = Math.PI / -2
     }
 
