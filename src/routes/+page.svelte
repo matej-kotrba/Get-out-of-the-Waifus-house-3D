@@ -1,6 +1,9 @@
 <script lang="ts">
 	import LandingAnimation from '$lib/components/main-menu/landing-animation.svelte';
 	import Menu from '$lib/components/main-menu/menu.svelte';
+	import Inventory, {
+		type Inventory as InventoryType
+	} from '$lib/components/game/ingame-ui/inventory.svelte';
 	import {
 		CharacterControls,
 		type CharacterAction,
@@ -12,6 +15,7 @@
 	import { GUI } from 'dat.gui';
 	import { FBXLoader } from 'three/examples/jsm/Addons.js';
 	import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
+	import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -45,6 +49,12 @@
 		let mixer = new THREE.AnimationMixer(fbx);
 
 		const gui = new GUI();
+
+		new RGBELoader().load('/HDRi/forest.hdr', (texture) => {
+			texture.mapping = THREE.EquirectangularReflectionMapping;
+			scene.background = texture;
+			scene.environment = texture;
+		});
 
 		const loadingManager = new THREE.LoadingManager();
 		loadingManager.addHandler(/\.exr$/i, new EXRLoader());
@@ -137,9 +147,19 @@
 			if (animationFrameLoop) cancelAnimationFrame(animationFrameLoop);
 		};
 	});
+
+	// UI Components logic and placeholders
+	// const inventory: InventoryType = {
+	// 	slots: [
+	// 		{
+
+	// 		}
+	// 	]
+	// }
 </script>
 
 <div class="fixed left-0 top-0 h-screen w-screen">
+	<Inventory />
 	<canvas class="h-full w-full" bind:this={canvas}></canvas>
 </div>
 
