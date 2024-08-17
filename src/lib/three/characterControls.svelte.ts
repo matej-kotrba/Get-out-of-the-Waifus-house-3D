@@ -9,8 +9,8 @@ const DIRECTIONS = {
   right: "d"
 } as const;
 
-export type CharacterActions = "idle" | "run" | "walk" | "meleeAttack" | "walkWithItem";
-export type CharacterAnimationsMap = Map<CharacterActions, THREE.AnimationAction>;
+export type CharacterAction = "idle" | "run" | "walk" | "meleeAttack" | "walkWithItem";
+export type CharacterAnimationsMap = Map<CharacterAction, THREE.AnimationAction>;
 
 export class CharacterControls {
 
@@ -20,7 +20,7 @@ export class CharacterControls {
   orbitControls: OrbitControls
   camera: THREE.Camera
 
-  currentAction: CharacterActions;
+  currentAction: CharacterAction;
 
   walkDirection = new THREE.Vector3();
   rotateAngle = new THREE.Vector3(0, 1, 0);
@@ -31,7 +31,7 @@ export class CharacterControls {
   runVelocity = 5;
   walkVelocity = 2;
 
-  constructor(model: THREE.Group, mixer: THREE.AnimationMixer, animations: CharacterAnimationsMap, orbitControls: OrbitControls, camera: THREE.Camera, currentAction: CharacterActions) {
+  constructor(model: THREE.Group, mixer: THREE.AnimationMixer, animations: CharacterAnimationsMap, orbitControls: OrbitControls, camera: THREE.Camera, currentAction: CharacterAction) {
     this.model = model;
     this.mixer = mixer;
     this.animationsMap = animations;
@@ -50,7 +50,7 @@ export class CharacterControls {
   public update(delta: number, keys: KeypressListenerKeys) {
     const directionPressed = Object.values(DIRECTIONS).some(key => keys[key] === true)
 
-    let play: CharacterActions = "idle"
+    let play: CharacterAction = "idle"
     if (keys["q"]) {
       play = "meleeAttack"
     }
@@ -86,7 +86,7 @@ export class CharacterControls {
     }
   }
 
-  private isMobilityAction(action: CharacterActions) {
+  private isMobilityAction(action: CharacterAction) {
     return action === "run" || action === "walk" || action === "walkWithItem"
   }
 

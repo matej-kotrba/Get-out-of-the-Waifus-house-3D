@@ -3,6 +3,7 @@
 	import Menu from '$lib/components/main-menu/menu.svelte';
 	import {
 		CharacterControls,
+		type CharacterAction,
 		type CharacterAnimationsMap
 	} from '$lib/three/characterControls.svelte';
 	import { initialize, keypressListener } from '$lib/three/setup.svelte';
@@ -34,21 +35,14 @@
 		let fbx = new THREE.Group<THREE.Object3DEventMap>();
 		let mixer = new THREE.AnimationMixer(fbx);
 
+		const gui = new GUI();
+
 		const loadingManager = new THREE.LoadingManager();
-		loadingManager.onLoad = () => {
-			charactersControls = new CharacterControls(
-				fbx,
-				mixer,
-				animationsMap,
-				controls,
-				camera,
-				'idle'
-			);
-		};
 		loadingManager.addHandler(/\.exr$/i, new EXRLoader());
 
 		const loader = new FBXLoader(loadingManager);
 		loader.setPath('/');
+
 		loader.load(
 			'models/characters/bot.fbx',
 			(fbxTemp) => {
@@ -57,9 +51,6 @@
 					c.castShadow = true;
 				});
 				fbxTemp.scale.setScalar(0.01);
-				// fbx.rotateY(Math.PI);
-
-				const gui = new GUI();
 
 				// const modelSettings = {
 				// 	scale: 0.1
@@ -73,7 +64,7 @@
 
 				mixer = new THREE.AnimationMixer(fbx);
 
-				function onLoad(animName: string, anim: THREE.Group<THREE.Object3DEventMap>) {
+				function onLoad(animName: CharacterAction, anim: THREE.Group<THREE.Object3DEventMap>) {
 					const clip = anim.animations[0];
 					const action = mixer.clipAction(clip);
 
@@ -83,7 +74,7 @@
 				// Loading animations
 				loader.load('animations/idle.fbx', (a) => onLoad('idle', a));
 				loader.load('animations/walking.fbx', (a) => onLoad('walk', a));
-				loader.load('animations/walking-with-item.fbx', (a) => onLoad('walk-with-item', a));
+				loader.load('animations/walking-with-item.fbx', (a) => onLoad('walkWithItem', a));
 				loader.load('animations/running.fbx', (a) => onLoad('run', a));
 				loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
 
@@ -132,6 +123,16 @@
 			undefined,
 			(e) => console.log(e)
 		);
+		loadingManager.onLoad = () => {
+			charactersControls = new CharacterControls(
+				fbx,
+				mixer,
+				animationsMap,
+				controls,
+				camera,
+				'idle'
+			);
+		};
 	});
 </script>
 
