@@ -13,8 +13,6 @@ export function initialize(canvas: HTMLCanvasElement) {
   camera.position.y = 2;
 
   // Setup OrbitControls
-  // const controls = new OrbitControls(camera, renderer.domElement);
-  // controls.enableDamping = true;
   const orbit = new THREE.Object3D();
   orbit.rotation.order = 'YXZ';
 
@@ -70,9 +68,11 @@ export function cameraOnMouseMoveRotation(orbit: THREE.Object3D) {
   function onMouseMove(event: MouseEvent) {
     const scale = -0.005;
     const axisXLimits = [-0.4, 0.2]
+
     orbit.rotateY(event.movementX * scale);
     orbit.rotateX(event.movementY * scale);
     orbit.rotation.z = 0;
+
     if (orbit.rotation.x < axisXLimits[0]) {
       orbit.rotation.x = axisXLimits[0];
     } else if (orbit.rotation.x > axisXLimits[1]) {

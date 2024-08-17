@@ -35,15 +35,6 @@
 		orbit.add(camera);
 		scene.add(orbit);
 
-		const helper = new THREE.CameraHelper(camera);
-		orbit.add(helper);
-
-		const cube = new THREE.Mesh(
-			new THREE.BoxGeometry(1, 1, 1),
-			new THREE.MeshBasicMaterial({ wireframe: true })
-		);
-		orbit.add(cube);
-
 		const keyListener = keypressListener();
 		const { destroy: cameraOnMouseMoveRotationDestroy } = cameraOnMouseMoveRotation(orbit);
 

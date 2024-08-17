@@ -89,8 +89,10 @@ export class CharacterControls {
   }
 
   private updateCharacterRotation(keys: KeypressListenerKeys) {
-    console.log(this.orbit.position.x - this.model.position.x, (this.orbit.position.z + 5) - this.model.position.z)
-    const angleCameraDirection = Math.atan2(this.orbit.position.x - this.model.position.x, this.orbit.position.z - this.model.position.z)
+    const cameraWorldPosition = new THREE.Vector3()
+    this.camera.getWorldPosition(cameraWorldPosition)
+
+    const angleCameraDirection = Math.atan2(cameraWorldPosition.x - this.model.position.x, cameraWorldPosition.z - this.model.position.z)
     const directionOffset = this.dirationOffset(keys);
 
     this.rotateQuaternion.setFromAxisAngle(this.rotateAngle, angleCameraDirection + directionOffset + Math.PI)
@@ -105,12 +107,6 @@ export class CharacterControls {
   private updateCameraTarget(moveX: number, moveZ: number) {
     this.orbit.position.x += moveX;
     this.orbit.position.z += moveZ;
-
-    // this.cameraTarget.x = this.model.position.x
-    // this.cameraTarget.y = this.model.position.y + 1
-    // this.cameraTarget.z = this.model.position.z
-    // this.orbit.position.copy(this.cameraTarget)
-    // this.orbit.position.set(this.cameraTarget.x, this.cameraTarget.y, this.cameraTarget.z)
   }
 
   private dirationOffset(keysPressed: KeypressListenerKeys) {
