@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 
 export function initialize(canvas: HTMLCanvasElement) {
   // Setup Three.js
@@ -14,8 +13,10 @@ export function initialize(canvas: HTMLCanvasElement) {
   camera.position.y = 2;
 
   // Setup OrbitControls
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
+  // const controls = new OrbitControls(camera, renderer.domElement);
+  // controls.enableDamping = true;
+  const orbit = new THREE.Object3D();
+  orbit.rotation.order = 'YXZ';
 
   // Basic lighting
   const light = new THREE.AmbientLight(0xffffff, 0.5);
@@ -35,7 +36,7 @@ export function initialize(canvas: HTMLCanvasElement) {
   });
   resizeObserver.observe(canvas);
 
-  return { renderer, scene, camera, controls };
+  return { renderer, scene, camera, orbit };
 }
 
 export type KeypressListenerKeys = Record<string, boolean>;
@@ -63,4 +64,28 @@ export function keypressListener() {
       window.removeEventListener('keyup', onKeyup);
     }
   };
+}
+
+export function cameraOnMouseMoveRotation(orbit: THREE.Object3D) {
+  function onMouseMove(event: MouseEvent) {
+    const scale = -0.005;
+    const axisXLimits = [-0.4, 0.2]
+    orbit.rotateY(event.movementX * scale);
+    orbit.rotateX(event.movementY * scale);
+    orbit.rotation.z = 0;
+    if (orbit.rotation.x < axisXLimits[0]) {
+      orbit.rotation.x = axisXLimits[0];
+    } else if (orbit.rotation.x > axisXLimits[1]) {
+      orbit.rotation.x = axisXLimits[1];
+    }
+  }
+
+  const abortController = new AbortController();
+  window.addEventListener('mousemove', onMouseMove, { signal: abortController.signal });
+
+  return {
+    destroy() {
+      abortController.abort();
+    }
+  }
 }
