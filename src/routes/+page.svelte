@@ -6,7 +6,7 @@
 		type CharacterAction,
 		type CharacterAnimationsMap
 	} from '$lib/three/characterControls.svelte';
-	import { initialize, keypressListener } from '$lib/three/setup.svelte';
+	import { initialize, keypressListener, cameraOnMouseMoveRotation } from '$lib/three/setup.svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
 	import { GUI } from 'dat.gui';
@@ -18,7 +18,11 @@
 	let canvas: HTMLCanvasElement;
 
 	onMount(() => {
-		const { renderer, scene, controls, camera } = initialize(canvas);
+		const { renderer, scene, orbit, camera } = initialize(canvas);
+
+		canvas.addEventListener('click', () => {
+			canvas.requestPointerLock();
+		});
 
 		const plane = new THREE.PlaneGeometry(10, 10);
 		const material = new THREE.MeshBasicMaterial({ color: 0xaa4400, side: THREE.DoubleSide });
@@ -27,7 +31,12 @@
 		planeMesh.rotation.x = Math.PI / 2;
 		scene.add(planeMesh);
 
+		orbit.position.copy(planeMesh.position);
+		orbit.add(camera);
+		scene.add(orbit);
+
 		const keyListener = keypressListener();
+		const { destroy: cameraOnMouseMoveRotationDestroy } = cameraOnMouseMoveRotation(orbit);
 
 		let charactersControls: CharacterControls;
 
@@ -101,37 +110,31 @@
 					// gui.add(machete.rotation, 'y', -Math.PI, Math.PI);
 					// gui.add(machete.rotation, 'z', -Math.PI, Math.PI);
 				});
-
-				const clock = new THREE.Clock();
-				let animationFrameLoop: number = 0;
-				function update() {
-					let mixerUpdateDelta = clock.getDelta();
-					charactersControls?.update(mixerUpdateDelta, keyListener.keys);
-
-					controls.update();
-					renderer.render(scene, camera);
-					animationFrameLoop = requestAnimationFrame(update);
-				}
-
-				update();
-
-				return () => {
-					keyListener.destroy();
-					if (animationFrameLoop) cancelAnimationFrame(animationFrameLoop);
-				};
 			},
 			undefined,
 			(e) => console.log(e)
 		);
 		loadingManager.onLoad = () => {
-			charactersControls = new CharacterControls(
-				fbx,
-				mixer,
-				animationsMap,
-				controls,
-				camera,
-				'idle'
-			);
+			charactersControls = new CharacterControls(fbx, mixer, animationsMap, orbit, camera, 'idle');
+		};
+
+		const clock = new THREE.Clock();
+		let animationFrameLoop: number = 0;
+		function update() {
+			let mixerUpdateDelta = clock.getDelta();
+			charactersControls?.update(mixerUpdateDelta, keyListener.keys);
+
+			// controls.update();
+			renderer.render(scene, camera);
+			animationFrameLoop = requestAnimationFrame(update);
+		}
+
+		update();
+
+		return () => {
+			keyListener.destroy();
+			cameraOnMouseMoveRotationDestroy();
+			if (animationFrameLoop) cancelAnimationFrame(animationFrameLoop);
 		};
 	});
 </script>

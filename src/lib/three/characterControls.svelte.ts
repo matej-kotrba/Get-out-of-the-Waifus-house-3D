@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import type { OrbitControls } from 'three/examples/jsm/Addons.js';
 import type { KeypressListenerKeys } from './setup.svelte';
 
 const DIRECTIONS = {
@@ -17,7 +16,7 @@ export class CharacterControls {
   model: THREE.Group
   mixer: THREE.AnimationMixer
   animationsMap: CharacterAnimationsMap = new Map()
-  orbitControls: OrbitControls
+  orbit: THREE.Object3D
   camera: THREE.Camera
 
   currentAction: CharacterAction;
@@ -31,11 +30,11 @@ export class CharacterControls {
   runVelocity = 5;
   walkVelocity = 2;
 
-  constructor(model: THREE.Group, mixer: THREE.AnimationMixer, animations: CharacterAnimationsMap, orbitControls: OrbitControls, camera: THREE.Camera, currentAction: CharacterAction) {
+  constructor(model: THREE.Group, mixer: THREE.AnimationMixer, animations: CharacterAnimationsMap, orbit: THREE.Object3D, camera: THREE.Camera, currentAction: CharacterAction) {
     this.model = model;
     this.mixer = mixer;
     this.animationsMap = animations;
-    this.orbitControls = orbitControls;
+    this.orbit = orbit;
     this.camera = camera;
     this.currentAction = currentAction;
     this.animationsMap.forEach((value, key) => {
@@ -43,7 +42,6 @@ export class CharacterControls {
         value.play();
       }
     })
-    this.orbitControls = orbitControls;
     this.camera = camera;
   }
 
@@ -91,7 +89,10 @@ export class CharacterControls {
   }
 
   private updateCharacterRotation(keys: KeypressListenerKeys) {
-    const angleCameraDirection = Math.atan2(this.camera.position.x - this.model.position.x, this.camera.position.z - this.model.position.z)
+    const cameraWorldPosition = new THREE.Vector3()
+    this.camera.getWorldPosition(cameraWorldPosition)
+
+    const angleCameraDirection = Math.atan2(cameraWorldPosition.x - this.model.position.x, cameraWorldPosition.z - this.model.position.z)
     const directionOffset = this.dirationOffset(keys);
 
     this.rotateQuaternion.setFromAxisAngle(this.rotateAngle, angleCameraDirection + directionOffset + Math.PI)
@@ -104,13 +105,8 @@ export class CharacterControls {
   }
 
   private updateCameraTarget(moveX: number, moveZ: number) {
-    this.camera.position.x += moveX;
-    this.camera.position.z += moveZ;
-
-    this.cameraTarget.x = this.model.position.x
-    this.cameraTarget.y = this.model.position.y + 1
-    this.cameraTarget.z = this.model.position.z
-    this.orbitControls.target = this.cameraTarget
+    this.orbit.position.x += moveX;
+    this.orbit.position.z += moveZ;
   }
 
   private dirationOffset(keysPressed: KeypressListenerKeys) {
