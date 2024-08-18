@@ -16,6 +16,7 @@
 	import { FBXLoader } from 'three/examples/jsm/Addons.js';
 	import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 	import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+	import updateMachine from '$lib/game/general/UpdateMachine';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -129,22 +130,17 @@
 		};
 
 		const clock = new THREE.Clock();
-		let animationFrameLoop: number = 0;
-		function update() {
+
+		updateMachine.subscribe(() => {
 			let mixerUpdateDelta = clock.getDelta();
 			charactersControls?.update(mixerUpdateDelta, keyListener.keys);
-
-			// controls.update();
 			renderer.render(scene, camera);
-			animationFrameLoop = requestAnimationFrame(update);
-		}
-
-		update();
+		});
+		updateMachine.start();
 
 		return () => {
 			keyListener.destroy();
 			cameraOnMouseMoveRotationDestroy();
-			if (animationFrameLoop) cancelAnimationFrame(animationFrameLoop);
 		};
 	});
 
