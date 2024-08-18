@@ -10,7 +10,7 @@ export function initialize(canvas: HTMLCanvasElement) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(75, 2, 0.1, 100);
   camera.position.z = 5;
-  camera.position.y = 2;
+  camera.position.y = 3;
 
   // Setup OrbitControls
   const orbit = new THREE.Object3D();
@@ -64,7 +64,7 @@ export function keypressListener() {
   };
 }
 
-export function cameraOnMouseMoveRotation(orbit: THREE.Object3D) {
+export function initializeCameraUpdation(orbit: THREE.Object3D) {
   function onMouseMove(event: MouseEvent) {
     const scale = -0.005;
     const axisXLimits = [-0.4, 0.2]
@@ -83,9 +83,24 @@ export function cameraOnMouseMoveRotation(orbit: THREE.Object3D) {
   const abortController = new AbortController();
   window.addEventListener('mousemove', onMouseMove, { signal: abortController.signal });
 
+  const mousewheelAbortController = new AbortController();
+
+  const minMaxZoom = [0.5, 0.8];
+  orbit.scale.setScalar(0.8);
+  window.addEventListener('wheel', (event) => {
+    let newScale = orbit.scale.x + event.deltaY * 0.001;
+    if (newScale < minMaxZoom[0]) {
+      newScale = minMaxZoom[0];
+    } else if (newScale > minMaxZoom[1]) {
+      newScale = minMaxZoom[1];
+    }
+    orbit.scale.setScalar(newScale);
+  }, { signal: mousewheelAbortController.signal });
+
   return {
     destroy() {
       abortController.abort();
+      mousewheelAbortController.abort();
     }
   }
 }
