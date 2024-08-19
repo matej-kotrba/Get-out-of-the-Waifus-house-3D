@@ -1,24 +1,21 @@
-import { EXRLoader, FBXLoader } from "three/examples/jsm/Addons.js";
 import { GroundItemTemplate, GroundItem } from "../GroundItem";
 import * as THREE from "three";
+import loadMachine from "$lib/game/general/LoadMachine";
 
 export default class MacheteItem extends GroundItem implements GroundItemTemplate {
-    constructor(x: number, y: number, z: number) {
-        super(x, y, z);
+    constructor(initialPosition: THREE.Vector3) {
+        super(initialPosition);
     }
-    loadModel(onLoad?: () => void): void {
-        const loadingManager = new THREE.LoadingManager();
-        loadingManager.addHandler(/\.exr$/i, new EXRLoader());
 
-        const loader = new FBXLoader(loadingManager);
-        loader.setPath('models/objects/machete/');
-        loader.load('machete_1k.fbx', (machete) => {
-            machete.scale.setScalar(1);
+    loadModel(onLoad: (model: THREE.Group<THREE.Object3DEventMap>) => void): void {
+        loadMachine.loadModel({
+            path: '/objects/machete/',
+            modelFileName: 'machete_1k.fbx',
+            onLoad: (machete) => {
+                machete.scale.setScalar(1);
+                onLoad?.(machete)
+            }
         });
-
-        if (onLoad) {
-            loadingManager.onLoad = onLoad;
-        }
     }
 
     public onPickup(): void {

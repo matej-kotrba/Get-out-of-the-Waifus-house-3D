@@ -9,7 +9,7 @@
 		type CharacterAction,
 		type CharacterAnimationsMap
 	} from '$lib/three/characterControls.svelte';
-	import { initialize, keypressListener, cameraOnMouseMoveRotation } from '$lib/three/setup.svelte';
+	import { initialize, keypressListener, initializeCameraUpdation } from '$lib/three/setup.svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
 	import { GUI } from 'dat.gui';
@@ -17,6 +17,7 @@
 	import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 	import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 	import updateMachine from '$lib/game/general/UpdateMachine';
+	import loadMachine from '$lib/game/general/LoadMachine';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -41,7 +42,7 @@
 		scene.add(orbit);
 
 		const keyListener = keypressListener();
-		const { destroy: cameraOnMouseMoveRotationDestroy } = cameraOnMouseMoveRotation(orbit);
+		const { destroy: cameraOnMouseMoveRotationDestroy } = initializeCameraUpdation(orbit);
 
 		let charactersControls: CharacterControls;
 
@@ -99,28 +100,31 @@
 				loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
 
 				// Loading object models
-				loader.setPath('models/objects/machete/');
-				loader.load('machete_1k.fbx', (machete) => {
-					machete.scale.setScalar(1);
+				loadMachine.loadModel({
+					path: '/objects/machete/',
+					modelFileName: 'machete_1k.fbx',
+					onLoad: (machete) => {
+						machete.scale.setScalar(1);
 
-					const rightHand = fbx.getObjectByName('mixamorigRightHandIndex1');
-					if (rightHand) {
-						rightHand.add(machete);
-						machete.position.x += 7.6;
-						machete.position.z += 3.2;
+						const rightHand = fbx.getObjectByName('mixamorigRightHandIndex1');
+						if (rightHand) {
+							rightHand.add(machete);
+							machete.position.x += 7.6;
+							machete.position.z += 3.2;
 
-						machete.rotation.x = -1.2;
-						machete.rotation.y = 0;
-						machete.rotation.z = -1.6;
+							machete.rotation.x = -1.2;
+							machete.rotation.y = 0;
+							machete.rotation.z = -1.6;
+						}
 					}
-
-					// gui.add(machete.position, 'x', -10, 10);
-					// gui.add(machete.position, 'y', -10, 10);
-					// gui.add(machete.position, 'z', -10, 10);
-					// gui.add(machete.rotation, 'x', -Math.PI, Math.PI);
-					// gui.add(machete.rotation, 'y', -Math.PI, Math.PI);
-					// gui.add(machete.rotation, 'z', -Math.PI, Math.PI);
 				});
+
+				// gui.add(machete.position, 'x', -10, 10);
+				// gui.add(machete.position, 'y', -10, 10);
+				// gui.add(machete.position, 'z', -10, 10);
+				// gui.add(machete.rotation, 'x', -Math.PI, Math.PI);
+				// gui.add(machete.rotation, 'y', -Math.PI, Math.PI);
+				// gui.add(machete.rotation, 'z', -Math.PI, Math.PI);
 			},
 			undefined,
 			(e) => console.log(e)
