@@ -18,13 +18,15 @@
 	import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 	import updateMachine from '$lib/game/general/UpdateMachine';
 	import loadMachine from '$lib/game/general/LoadMachine';
+	import groundItemFactory from '$lib/game/item/ground/NewGroundItemFactory';
+	import { getMacheteItem } from '$lib/game/item/ground/items/Machete';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
 	let canvas: HTMLCanvasElement;
 
 	onMount(() => {
-		const { renderer, scene, orbit, camera } = initialize(canvas);
+		// const { renderer, scene, orbit, camera } = initialize(canvas);
 
 		canvas.addEventListener('click', () => {
 			canvas.requestPointerLock();
@@ -100,24 +102,26 @@
 				loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
 
 				// Loading object models
-				loadMachine.loadModel({
-					path: '/objects/machete/',
-					modelFileName: 'machete_1k.fbx',
-					onLoad: (machete) => {
-						machete.scale.setScalar(1);
+				groundItemFactory.createGroundItem(getMacheteItem(), new THREE.Vector3(7.6, 0, 3.2));
 
-						const rightHand = fbx.getObjectByName('mixamorigRightHandIndex1');
-						if (rightHand) {
-							rightHand.add(machete);
-							machete.position.x += 7.6;
-							machete.position.z += 3.2;
+				// loadMachine.loadModel({
+				// 	path: '/objects/machete/',
+				// 	modelFileName: 'machete_1k.fbx',
+				// 	onLoad: (machete) => {
+				// 		machete.scale.setScalar(1);
 
-							machete.rotation.x = -1.2;
-							machete.rotation.y = 0;
-							machete.rotation.z = -1.6;
-						}
-					}
-				});
+				// 		const rightHand = fbx.getObjectByName('mixamorigRightHandIndex1');
+				// 		if (rightHand) {
+				// 			rightHand.add(machete);
+				// 			machete.position.x += 7.6;
+				// 			machete.position.z += 3.2;
+
+				// 			machete.rotation.x = -1.2;
+				// 			machete.rotation.y = 0;
+				// 			machete.rotation.z = -1.6;
+				// 		}
+				// 	}
+				// });
 
 				// gui.add(machete.position, 'x', -10, 10);
 				// gui.add(machete.position, 'y', -10, 10);
