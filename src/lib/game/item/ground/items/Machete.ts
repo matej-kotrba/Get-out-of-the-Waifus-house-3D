@@ -10,7 +10,7 @@ export function getMacheteItem(): GroundItemTemplate {
                 path: '/objects/machete/',
                 modelFileName: 'machete_1k.fbx',
                 onLoad: (machete) => {
-                    machete.scale.setScalar(1);
+                    machete.scale.setScalar(0.01);
                     onLoad?.(machete)
                 }
             });

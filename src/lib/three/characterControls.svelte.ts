@@ -96,7 +96,7 @@ export class CharacterControls {
     const directionOffset = this.dirationOffset(keys);
 
     this.rotateQuaternion.setFromAxisAngle(this.rotateAngle, angleCameraDirection + directionOffset + Math.PI)
-    this.model.quaternion.rotateTowards(this.rotateQuaternion, delta * 5)
+    this.model.quaternion.rotateTowards(this.rotateQuaternion, delta * 7)
 
     this.camera.getWorldDirection(this.walkDirection);
     this.walkDirection.y = 0;

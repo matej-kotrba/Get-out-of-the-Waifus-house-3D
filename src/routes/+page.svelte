@@ -102,7 +102,13 @@
 				loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
 
 				// Loading object models
-				groundItemFactory.createGroundItem(getMacheteItem(), new THREE.Vector3(7.6, 0, 3.2));
+				const groundItmeTest = groundItemFactory.createGroundItem(
+					getMacheteItem(),
+					new THREE.Vector3(7.6, 0, 3.2)
+				);
+				groundItmeTest.then((item) => {
+					scene.add(item.model);
+				});
 
 				// loadMachine.loadModel({
 				// 	path: '/objects/machete/',
