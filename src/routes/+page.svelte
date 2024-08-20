@@ -26,7 +26,7 @@
 	let canvas: HTMLCanvasElement;
 
 	onMount(() => {
-		// const { renderer, scene, orbit, camera } = initialize(canvas);
+		const { renderer, scene, orbit, camera } = initialize(canvas);
 
 		canvas.addEventListener('click', () => {
 			canvas.requestPointerLock();
@@ -137,11 +137,8 @@
 			charactersControls = new CharacterControls(fbx, mixer, animationsMap, orbit, camera, 'idle');
 		};
 
-		const clock = new THREE.Clock();
-
-		updateMachine.subscribe(() => {
-			let mixerUpdateDelta = clock.getDelta();
-			charactersControls?.update(mixerUpdateDelta, keyListener.keys);
+		updateMachine.subscribe((delta) => {
+			charactersControls?.update(delta, keyListener.keys);
 			renderer.render(scene, camera);
 		});
 		updateMachine.start();
