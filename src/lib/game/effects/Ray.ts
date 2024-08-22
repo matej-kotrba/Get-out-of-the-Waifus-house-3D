@@ -60,6 +60,12 @@ class RayFactory {
     rays.forEach(ray => scene.add(ray));
   }
 
+  public rayAnimateEffect(rays: LightRay[], delta: number) {
+    rays.forEach(ray => {
+      ray.translateY(Math.sin(delta))
+    });
+  }
+
   private createRay(position: THREE.Vector3, rotation: number): LightRay {
     const lightRayGeometry = new THREE.CylinderGeometry(0.02, 0.05, 2, 16);
     const lightRay = new THREE.Mesh(lightRayGeometry, lightRayMaterial);

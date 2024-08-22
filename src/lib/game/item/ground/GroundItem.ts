@@ -1,4 +1,5 @@
 import rayFactory from '$lib/game/effects/Ray';
+import updateMachine from '$lib/game/general/UpdateMachine';
 import * as THREE from 'three';
 
 export type GroundItemTemplate = {
@@ -34,6 +35,9 @@ export class GroundItem {
     this.rays = new THREE.Group();
     const rays = rayFactory.createRaysAtArea('point', { count: 4, position: restProps.initialPosition });
     rayFactory.addRaysToScene(rays, this.rays);
+    updateMachine.subscribe((delta) => {
+      rayFactory.rayAnimateEffect(rays, delta);
+    })
 
     this.initialPosition = restProps.initialPosition;
 
