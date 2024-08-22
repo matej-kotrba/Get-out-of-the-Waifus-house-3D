@@ -107,7 +107,7 @@
 					new THREE.Vector3(7.6, 0, 3.2)
 				);
 				groundItmeTest.then((item) => {
-					scene.add(item.model);
+					item.addToScene(scene);
 				});
 
 				// loadMachine.loadModel({
@@ -144,6 +144,7 @@
 		};
 
 		updateMachine.subscribe((delta) => {
+			// lightRay.translateY(0.005);
 			charactersControls?.update(delta, keyListener.keys);
 			renderer.render(scene, camera);
 		});

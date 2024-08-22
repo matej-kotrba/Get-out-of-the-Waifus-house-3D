@@ -1,3 +1,4 @@
+import rayFactory from '$lib/game/effects/Ray';
 import * as THREE from 'three';
 
 export type GroundItemTemplate = {
@@ -19,6 +20,7 @@ export class GroundItem {
   public destroy: GroundItemTemplate['destroy'];
 
   public model: GroundItemRestProps['model'];
+  public rays: THREE.Group<THREE.Object3DEventMap>;
   public initialPosition: GroundItemRestProps['initialPosition'];
 
   constructor(groundItem: GroundItemTemplate, restProps: GroundItemRestProps) {
@@ -28,6 +30,11 @@ export class GroundItem {
     this.destroy = groundItem.destroy
 
     this.model = restProps.model;
+
+    this.rays = new THREE.Group();
+    const rays = rayFactory.createRaysAtArea('point', { count: 4, position: restProps.initialPosition });
+    rayFactory.addRaysToScene(rays, this.rays);
+
     this.initialPosition = restProps.initialPosition;
 
     this.model.position.copy(this.initialPosition);
@@ -35,5 +42,6 @@ export class GroundItem {
 
   public addToScene(scene: THREE.Scene) {
     scene.add(this.model);
+    scene.add(this.rays);
   }
 }
