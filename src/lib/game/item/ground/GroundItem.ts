@@ -33,10 +33,10 @@ export class GroundItem {
     this.model = restProps.model;
 
     this.rays = new THREE.Group();
-    const rays = rayFactory.createRaysAtArea('point', { count: 4, position: restProps.initialPosition });
+    const rays = rayFactory.createRaysAtArea('point', { count: 5, position: restProps.initialPosition });
     rayFactory.addRaysToScene(rays, this.rays);
-    updateMachine.subscribe((delta) => {
-      rayFactory.rayAnimateEffect(rays, delta);
+    updateMachine.subscribe((delta, time) => {
+      rayFactory.rayAnimateEffect(rays, delta, time);
     })
 
     this.initialPosition = restProps.initialPosition;

@@ -1,11 +1,14 @@
 import * as THREE from "three";
+import { GROUND_ITEM_HIGHLIGHT } from "../constants/colors";
+import playerVarsMachine from "../general/PlayerVarsMachine";
 
 export type Area = "point" | "rect"
 
 const lightRayMaterial = new THREE.ShaderMaterial({
   uniforms: {
-    color: { value: new THREE.Color(0x00ff00) },
-    intensity: { value: 0.05 }
+    color: { value: new THREE.Color(GROUND_ITEM_HIGHLIGHT) },
+    intensity: { value: 0.05 },
+    alpha: { value: 1 }
   },
   vertexShader: `
     varying vec3 vPosition;
@@ -17,12 +20,13 @@ const lightRayMaterial = new THREE.ShaderMaterial({
   fragmentShader: `
     uniform vec3 color;
     uniform float intensity;
+    uniform float alpha;
     varying vec3 vPosition;
     
     void main() {
       float dist = length(vPosition.xy); // Vzdálenost od středu
       float glow = intensity / (dist * dist + 0.1); // Efekt záře
-      gl_FragColor = vec4(color * glow, 1.0);
+      gl_FragColor = vec4(color * glow, alpha);
     }
   `,
   transparent: true,
@@ -37,7 +41,7 @@ type CreateRaysAtAreaProps = {
 export type LightRay = THREE.Mesh<THREE.CylinderGeometry, THREE.ShaderMaterial, THREE.Object3DEventMap>;
 
 class RayFactory {
-  public createRaysAtArea(area: Area, { count = 4, position = new THREE.Vector3(0, 0, 0) }: CreateRaysAtAreaProps): LightRay[] {
+  public createRaysAtArea(area: Area, { count = 5, position = new THREE.Vector3(0, 0, 0) }: CreateRaysAtAreaProps): LightRay[] {
     const rays: LightRay[] = [];
     switch (area) {
       case "point": {
@@ -60,9 +64,17 @@ class RayFactory {
     rays.forEach(ray => scene.add(ray));
   }
 
-  public rayAnimateEffect(rays: LightRay[], delta: number) {
+  public rayAnimateEffect(rays: LightRay[], delta: number, time: number) {
+    const distanceFromPlayer = playerVarsMachine.playerModelPosition().distanceTo(rays[0].position);
     rays.forEach(ray => {
-      ray.translateY(Math.sin(delta))
+      if (distanceFromPlayer > 6) {
+        ray.material.uniforms.alpha = { value: 0.0 }
+      }
+      else {
+        const alpha = (distanceFromPlayer - 0.2) / 6;
+        ray.material.uniforms.alpha = { value: alpha }
+      }
+      ray.translateY(-Math.sin(time) * delta)
     });
   }
 

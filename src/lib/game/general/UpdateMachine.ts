@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-type Callback = (delta: number) => unknown;
+type Callback = (delta: number, time: number) => unknown;
 class UpdateMachine {
   private clock: THREE.Clock;
 
@@ -28,7 +28,7 @@ class UpdateMachine {
   private update() {
     if (!this.flag) return;
     const delta = this.clock.getDelta();
-    this.callbacks.forEach(cb => cb(delta));
+    this.callbacks.forEach(cb => cb(delta, this.clock.elapsedTime));
     requestAnimationFrame(() => this.update.call(this));
   }
 }

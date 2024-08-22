@@ -20,6 +20,7 @@
 	import loadMachine from '$lib/game/general/LoadMachine';
 	import groundItemFactory from '$lib/game/item/ground/NewGroundItemFactory';
 	import { getMacheteItem } from '$lib/game/item/ground/items/Machete';
+	import playerVarsMachine from '$lib/game/general/PlayerVarsMachine';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -74,6 +75,8 @@
 					c.castShadow = true;
 				});
 				fbxTemp.scale.setScalar(0.01);
+
+				playerVarsMachine.setup(fbx, camera);
 
 				// const modelSettings = {
 				// 	scale: 0.1
