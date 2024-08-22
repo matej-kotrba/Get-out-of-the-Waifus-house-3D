@@ -1,0 +1,1 @@
+export const GROUND_ITEM_HIGHLIGHT = 0xf7df28

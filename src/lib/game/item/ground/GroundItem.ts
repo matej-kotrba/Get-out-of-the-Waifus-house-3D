@@ -1,10 +1,51 @@
+import rayFactory from '$lib/game/effects/Ray';
+import updateMachine from '$lib/game/general/UpdateMachine';
 import * as THREE from 'three';
-export abstract class GroundItemTemplate {
-  abstract loadModel(onLoad?: (model: THREE.Group<THREE.Object3DEventMap>) => void): void;
-  abstract onPickup(): void;
-  abstract destroy(): void;
+
+export type GroundItemTemplate = {
+  type: string;
+  loadModel(onLoad?: (model: THREE.Group<THREE.Object3DEventMap>) => void): void;
+  onPickup(): void;
+  destroy(): void;
+}
+
+export type GroundItemRestProps = {
+  model: THREE.Group<THREE.Object3DEventMap>;
+  initialPosition: THREE.Vector3;
 }
 
 export class GroundItem {
-  constructor(public initialPosition: THREE.Vector3) { }
+  public type: GroundItemTemplate['type'];
+  public loadModel: GroundItemTemplate['loadModel'];
+  public onPickup: GroundItemTemplate['onPickup'];
+  public destroy: GroundItemTemplate['destroy'];
+
+  public model: GroundItemRestProps['model'];
+  public rays: THREE.Group<THREE.Object3DEventMap>;
+  public initialPosition: GroundItemRestProps['initialPosition'];
+
+  constructor(groundItem: GroundItemTemplate, restProps: GroundItemRestProps) {
+    this.type = groundItem.type;
+    this.loadModel = groundItem.loadModel;
+    this.onPickup = groundItem.onPickup;
+    this.destroy = groundItem.destroy
+
+    this.model = restProps.model;
+
+    this.rays = new THREE.Group();
+    const rays = rayFactory.createRaysAtArea('point', { count: 5, position: restProps.initialPosition });
+    rayFactory.addRaysToScene(rays, this.rays);
+    updateMachine.subscribe((delta, time) => {
+      rayFactory.rayAnimateEffect(rays, delta, time);
+    })
+
+    this.initialPosition = restProps.initialPosition;
+
+    this.model.position.copy(this.initialPosition);
+  }
+
+  public addToScene(scene: THREE.Scene) {
+    scene.add(this.model);
+    scene.add(this.rays);
+  }
 }

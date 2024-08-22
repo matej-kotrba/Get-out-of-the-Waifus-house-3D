@@ -1,7 +1,12 @@
-type Callback = () => unknown;
+import * as THREE from "three";
 
+type Callback = (delta: number, time: number) => unknown;
 class UpdateMachine {
-  constructor(private flag = false, private callbacks: Callback[] = []) { }
+  private clock: THREE.Clock;
+
+  constructor(private flag = false, private callbacks: Callback[] = []) {
+    this.clock = new THREE.Clock();
+  }
 
   public subscribe(callback: Callback) {
     this.callbacks.push(callback);
@@ -22,7 +27,8 @@ class UpdateMachine {
 
   private update() {
     if (!this.flag) return;
-    this.callbacks.forEach(cb => cb());
+    const delta = this.clock.getDelta();
+    this.callbacks.forEach(cb => cb(delta, this.clock.elapsedTime));
     requestAnimationFrame(() => this.update.call(this));
   }
 }

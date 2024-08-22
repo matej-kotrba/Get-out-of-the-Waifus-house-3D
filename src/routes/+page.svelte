@@ -18,6 +18,9 @@
 	import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 	import updateMachine from '$lib/game/general/UpdateMachine';
 	import loadMachine from '$lib/game/general/LoadMachine';
+	import groundItemFactory from '$lib/game/item/ground/NewGroundItemFactory';
+	import { getMacheteItem } from '$lib/game/item/ground/items/Machete';
+	import playerVarsMachine from '$lib/game/general/PlayerVarsMachine';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -73,6 +76,8 @@
 				});
 				fbxTemp.scale.setScalar(0.01);
 
+				playerVarsMachine.setup(fbx, camera);
+
 				// const modelSettings = {
 				// 	scale: 0.1
 				// };
@@ -100,24 +105,32 @@
 				loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
 
 				// Loading object models
-				loadMachine.loadModel({
-					path: '/objects/machete/',
-					modelFileName: 'machete_1k.fbx',
-					onLoad: (machete) => {
-						machete.scale.setScalar(1);
-
-						const rightHand = fbx.getObjectByName('mixamorigRightHandIndex1');
-						if (rightHand) {
-							rightHand.add(machete);
-							machete.position.x += 7.6;
-							machete.position.z += 3.2;
-
-							machete.rotation.x = -1.2;
-							machete.rotation.y = 0;
-							machete.rotation.z = -1.6;
-						}
-					}
+				const groundItmeTest = groundItemFactory.createGroundItem(
+					getMacheteItem(),
+					new THREE.Vector3(7.6, 0, 3.2)
+				);
+				groundItmeTest.then((item) => {
+					item.addToScene(scene);
 				});
+
+				// loadMachine.loadModel({
+				// 	path: '/objects/machete/',
+				// 	modelFileName: 'machete_1k.fbx',
+				// 	onLoad: (machete) => {
+				// 		machete.scale.setScalar(1);
+
+				// 		const rightHand = fbx.getObjectByName('mixamorigRightHandIndex1');
+				// 		if (rightHand) {
+				// 			rightHand.add(machete);
+				// 			machete.position.x += 7.6;
+				// 			machete.position.z += 3.2;
+
+				// 			machete.rotation.x = -1.2;
+				// 			machete.rotation.y = 0;
+				// 			machete.rotation.z = -1.6;
+				// 		}
+				// 	}
+				// });
 
 				// gui.add(machete.position, 'x', -10, 10);
 				// gui.add(machete.position, 'y', -10, 10);
@@ -133,11 +146,9 @@
 			charactersControls = new CharacterControls(fbx, mixer, animationsMap, orbit, camera, 'idle');
 		};
 
-		const clock = new THREE.Clock();
-
-		updateMachine.subscribe(() => {
-			let mixerUpdateDelta = clock.getDelta();
-			charactersControls?.update(mixerUpdateDelta, keyListener.keys);
+		updateMachine.subscribe((delta) => {
+			// lightRay.translateY(0.005);
+			charactersControls?.update(delta, keyListener.keys);
 			renderer.render(scene, camera);
 		});
 		updateMachine.start();

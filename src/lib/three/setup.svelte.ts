@@ -6,6 +6,8 @@ export function initialize(canvas: HTMLCanvasElement) {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(75, 2, 0.1, 100);

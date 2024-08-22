@@ -73,7 +73,7 @@ export class CharacterControls {
     this.mixer.update(delta)
 
     if (this.isMobilityAction(this.currentAction)) {
-      this.updateCharacterRotation(keys)
+      this.updateCharacterRotation(keys, delta)
 
       const velocity = this.currentAction === "run" ? this.runVelocity : this.walkVelocity;
       const moveX = this.walkDirection.x * velocity * delta;
@@ -88,7 +88,7 @@ export class CharacterControls {
     return action === "run" || action === "walk" || action === "walkWithItem"
   }
 
-  private updateCharacterRotation(keys: KeypressListenerKeys) {
+  private updateCharacterRotation(keys: KeypressListenerKeys, delta: number) {
     const cameraWorldPosition = new THREE.Vector3()
     this.camera.getWorldPosition(cameraWorldPosition)
 
@@ -96,7 +96,7 @@ export class CharacterControls {
     const directionOffset = this.dirationOffset(keys);
 
     this.rotateQuaternion.setFromAxisAngle(this.rotateAngle, angleCameraDirection + directionOffset + Math.PI)
-    this.model.quaternion.rotateTowards(this.rotateQuaternion, 0.05)
+    this.model.quaternion.rotateTowards(this.rotateQuaternion, delta * 7)
 
     this.camera.getWorldDirection(this.walkDirection);
     this.walkDirection.y = 0;
