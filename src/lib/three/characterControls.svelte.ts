@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { KeypressListenerKeys } from '$lib/game/general/ListenerMachine';
+import preloadMachine from '$lib/game/general/PreloadMachine.svelte';
 
 const DIRECTIONS = {
   forward: "w",
@@ -8,7 +9,9 @@ const DIRECTIONS = {
   right: "d"
 } as const;
 
-export type CharacterAction = "idle" | "run" | "walk" | "meleeAttack" | "walkWithItem";
+const allowedAnimations = ["idle", "run", "walk", "meleeAttack", "walkWithItem"] as const;
+
+export type CharacterAction = (typeof allowedAnimations)[number];
 export type CharacterAnimationsMap = Map<CharacterAction, THREE.AnimationAction>;
 
 export class CharacterControls {
@@ -30,10 +33,15 @@ export class CharacterControls {
   runVelocity = 5;
   walkVelocity = 2;
 
-  constructor(model: THREE.Group, mixer: THREE.AnimationMixer, animations: CharacterAnimationsMap, orbit: THREE.Object3D, camera: THREE.Camera, currentAction: CharacterAction) {
+  constructor(model: THREE.Group, orbit: THREE.Object3D, camera: THREE.Camera, currentAction: CharacterAction) {
     this.model = model;
-    this.mixer = mixer;
-    this.animationsMap = animations;
+    this.animationsMap = new Map();
+    this.mixer = new THREE.AnimationMixer(model);
+    preloadMachine.animationsLoaded.forEach((clip, action) => {
+      if (!allowedAnimations.includes(action)) return;
+      this.animationsMap.set(action, this.mixer.clipAction(clip));
+    })
+
     this.orbit = orbit;
     this.camera = camera;
     this.currentAction = currentAction;

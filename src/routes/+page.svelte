@@ -142,7 +142,7 @@
 			(e) => console.log(e)
 		);
 		loadingManager.onLoad = () => {
-			charactersControls = new CharacterControls(fbx, mixer, animationsMap, orbit, camera, 'idle');
+			charactersControls = new CharacterControls(fbx, orbit, camera, 'idle');
 		};
 
 		updateMachine.subscribe((delta) => {
