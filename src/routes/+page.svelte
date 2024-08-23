@@ -1,15 +1,13 @@
 <script lang="ts">
 	import LandingAnimation from '$lib/components/main-menu/landing-animation.svelte';
 	import Menu from '$lib/components/main-menu/menu.svelte';
-	import Inventory, {
-		type Inventory as InventoryType
-	} from '$lib/components/game/ingame-ui/inventory.svelte';
+	import Inventory from '$lib/components/game/ingame-ui/inventory.svelte';
 	import {
 		CharacterControls,
 		type CharacterAction,
 		type CharacterAnimationsMap
 	} from '$lib/three/characterControls.svelte';
-	import { initialize, keypressListener, initializeCameraUpdation } from '$lib/three/setup.svelte';
+	import { initialize, initializeCameraUpdation } from '$lib/three/setup.svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
 	import { GUI } from 'dat.gui';
@@ -21,6 +19,7 @@
 	import groundItemFactory from '$lib/game/item/ground/NewGroundItemFactory';
 	import { getMacheteItem } from '$lib/game/item/ground/items/Machete';
 	import playerVarsMachine from '$lib/game/general/PlayerVarsMachine';
+	import listenerMachine from '$lib/game/general/ListenerMachine';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -44,7 +43,6 @@
 		orbit.add(camera);
 		scene.add(orbit);
 
-		const keyListener = keypressListener();
 		const { destroy: cameraOnMouseMoveRotationDestroy } = initializeCameraUpdation(orbit);
 
 		let charactersControls: CharacterControls;
@@ -148,13 +146,13 @@
 
 		updateMachine.subscribe((delta) => {
 			// lightRay.translateY(0.005);
-			charactersControls?.update(delta, keyListener.keys);
+			charactersControls?.update(delta, listenerMachine.keys);
 			renderer.render(scene, camera);
 		});
 		updateMachine.start();
 
 		return () => {
-			keyListener.destroy();
+			listenerMachine.destroy();
 			cameraOnMouseMoveRotationDestroy();
 		};
 	});

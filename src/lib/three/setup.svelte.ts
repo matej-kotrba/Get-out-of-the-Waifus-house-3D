@@ -39,32 +39,7 @@ export function initialize(canvas: HTMLCanvasElement) {
   return { renderer, scene, camera, orbit };
 }
 
-export type KeypressListenerKeys = Record<string, boolean>;
 
-export function keypressListener() {
-  const keys: KeypressListenerKeys = {}
-
-  const onKeydown = (event: KeyboardEvent) => {
-    keys[event.key.toLowerCase()] = true;
-  }
-
-  const onKeyup = (event: KeyboardEvent) => {
-    keys[event.key.toLowerCase()] = false;
-  }
-
-  window.addEventListener('keydown', onKeydown);
-  window.addEventListener('keyup', onKeyup);
-
-  return {
-    get keys() {
-      return keys;
-    },
-    destroy() {
-      window.removeEventListener('keydown', onKeydown);
-      window.removeEventListener('keyup', onKeyup);
-    }
-  };
-}
 
 export function initializeCameraUpdation(orbit: THREE.Object3D) {
   function onMouseMove(event: MouseEvent) {

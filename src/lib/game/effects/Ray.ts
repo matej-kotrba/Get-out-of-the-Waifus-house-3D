@@ -67,11 +67,11 @@ class RayFactory {
   public rayAnimateEffect(rays: LightRay[], delta: number, time: number) {
     const distanceFromPlayer = playerVarsMachine.playerModelPosition().distanceTo(rays[0].position);
     rays.forEach(ray => {
-      if (distanceFromPlayer > 6) {
+      if (distanceFromPlayer > 15) {
         ray.material.uniforms.alpha = { value: 0.0 }
       }
       else {
-        const alpha = (distanceFromPlayer - 0.2) / 6;
+        const alpha = (distanceFromPlayer - 0.2) / 15;
         ray.material.uniforms.alpha = { value: alpha }
       }
       ray.translateY(-Math.sin(time) * delta)
