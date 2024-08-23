@@ -1,8 +1,7 @@
 import rayFactory from '$lib/game/effects/Ray';
+import type { ItemType } from '$lib/game/general/PreloadMachine.svelte';
 import updateMachine from '$lib/game/general/UpdateMachine';
 import * as THREE from 'three';
-import type { ItemType } from '../NewItemFactory';
-
 
 export type GroundItemTemplate = {
   type: ItemType;

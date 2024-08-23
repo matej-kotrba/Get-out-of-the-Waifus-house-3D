@@ -20,6 +20,7 @@
 	import { getMacheteItem } from '$lib/game/item/ground/items/Machete';
 	import playerVarsMachine from '$lib/game/general/PlayerVarsMachine';
 	import listenerMachine from '$lib/game/general/ListenerMachine';
+	import Loading from '$lib/components/game/ingame-ui/loading.svelte';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -86,30 +87,30 @@
 
 				scene.add(fbxTemp);
 
-				mixer = new THREE.AnimationMixer(fbx);
+				// mixer = new THREE.AnimationMixer(fbx);
 
-				function onLoad(animName: CharacterAction, anim: THREE.Group<THREE.Object3DEventMap>) {
-					const clip = anim.animations[0];
-					const action = mixer.clipAction(clip);
+				// function onLoad(animName: CharacterAction, anim: THREE.Group<THREE.Object3DEventMap>) {
+				// 	const clip = anim.animations[0];
+				// 	const action = mixer.clipAction(clip);
 
-					animationsMap.set(animName, action);
-				}
+				// 	animationsMap.set(animName, action);
+				// }
 
 				// Loading animations
-				loader.load('animations/idle.fbx', (a) => onLoad('idle', a));
-				loader.load('animations/walking.fbx', (a) => onLoad('walk', a));
-				loader.load('animations/walking-with-item.fbx', (a) => onLoad('walkWithItem', a));
-				loader.load('animations/running.fbx', (a) => onLoad('run', a));
-				loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
+				// loader.load('animations/idle.fbx', (a) => onLoad('idle', a));
+				// loader.load('animations/walking.fbx', (a) => onLoad('walk', a));
+				// loader.load('animations/walking-with-item.fbx', (a) => onLoad('walkWithItem', a));
+				// loader.load('animations/running.fbx', (a) => onLoad('run', a));
+				// loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
 
 				// Loading object models
-				const groundItmeTest = newItemFactory.createGroundItem(
-					getMacheteItem(),
-					new THREE.Vector3(7.6, 0, 3.2)
-				);
-				groundItmeTest.then((item) => {
-					item.addToScene(scene);
-				});
+				// const groundItmeTest = newItemFactory.createGroundItem(
+				// 	getMacheteItem(),
+				// 	new THREE.Vector3(7.6, 0, 3.2)
+				// );
+				// groundItmeTest.then((item) => {
+				// 	item.addToScene(scene);
+				// });
 
 				// loadMachine.loadModel({
 				// 	path: '/objects/machete/',
@@ -167,6 +168,7 @@
 	// }
 </script>
 
+<Loading />
 <div class="fixed left-0 top-0 h-screen w-screen">
 	<Inventory />
 	<canvas class="h-full w-full" bind:this={canvas}></canvas>

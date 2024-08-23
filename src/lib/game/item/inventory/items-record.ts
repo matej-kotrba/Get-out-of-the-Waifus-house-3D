@@ -1,4 +1,4 @@
-import type { ItemType } from "../NewItemFactory";
+import type { ItemType } from "$lib/game/general/PreloadMachine.svelte";
 
 type InventoryItem = {
   displayName: string;
