@@ -16,7 +16,7 @@
 	import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 	import updateMachine from '$lib/game/general/UpdateMachine';
 	import loadMachine from '$lib/game/general/LoadMachine';
-	import groundItemFactory from '$lib/game/item/ground/NewGroundItemFactory';
+	import newItemFactory from '$lib/game/item/NewItemFactory';
 	import { getMacheteItem } from '$lib/game/item/ground/items/Machete';
 	import playerVarsMachine from '$lib/game/general/PlayerVarsMachine';
 	import listenerMachine from '$lib/game/general/ListenerMachine';
@@ -103,7 +103,7 @@
 				loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
 
 				// Loading object models
-				const groundItmeTest = groundItemFactory.createGroundItem(
+				const groundItmeTest = newItemFactory.createGroundItem(
 					getMacheteItem(),
 					new THREE.Vector3(7.6, 0, 3.2)
 				);

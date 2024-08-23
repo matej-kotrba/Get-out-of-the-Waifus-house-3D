@@ -1,10 +1,12 @@
 import rayFactory from '$lib/game/effects/Ray';
 import updateMachine from '$lib/game/general/UpdateMachine';
 import * as THREE from 'three';
+import type { ItemType } from '../NewItemFactory';
+
 
 export type GroundItemTemplate = {
-  type: string;
-  loadModel(onLoad?: (model: THREE.Group<THREE.Object3DEventMap>) => void): void;
+  type: ItemType;
+  loadModel(loadingManager: THREE.LoadingManager, onLoad?: (model: THREE.Group<THREE.Object3DEventMap>) => void): void;
   onPickup(): void;
   destroy(): void;
 }
@@ -16,7 +18,6 @@ export type GroundItemRestProps = {
 
 export class GroundItem {
   public type: GroundItemTemplate['type'];
-  public loadModel: GroundItemTemplate['loadModel'];
   public onPickup: GroundItemTemplate['onPickup'];
   public destroy: GroundItemTemplate['destroy'];
 
@@ -24,9 +25,8 @@ export class GroundItem {
   public rays: THREE.Group<THREE.Object3DEventMap>;
   public initialPosition: GroundItemRestProps['initialPosition'];
 
-  constructor(groundItem: GroundItemTemplate, restProps: GroundItemRestProps) {
+  constructor(groundItem: Omit<GroundItemTemplate, "loadModel">, restProps: GroundItemRestProps) {
     this.type = groundItem.type;
-    this.loadModel = groundItem.loadModel;
     this.onPickup = groundItem.onPickup;
     this.destroy = groundItem.destroy
 

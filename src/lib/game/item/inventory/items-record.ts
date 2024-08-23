@@ -1,9 +1,11 @@
+import type { ItemType } from "../NewItemFactory";
+
 type InventoryItem = {
   displayName: string;
   image: string;
 }
 
-export type InventoryKeys = "machete" | "fist"
+export type InventoryKeys = "fist" | ItemType
 
 type InventoryItemsRecord = Record<InventoryKeys, InventoryItem>;
 

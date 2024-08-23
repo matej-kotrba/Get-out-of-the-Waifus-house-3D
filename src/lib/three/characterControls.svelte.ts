@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { KeypressListenerKeys } from './setup.svelte';
+import type { KeypressListenerKeys } from '$lib/game/general/ListenerMachine';
 
 const DIRECTIONS = {
   forward: "w",
