@@ -1,6 +1,10 @@
 <script lang="ts">
-	import inventory from '$lib/game/inventory/Inventory';
+	import inventory from '$lib/game/inventory/Inventory.svelte';
 	import { inventoryItemsRecord } from '$lib/game/item/inventory/items-record';
+
+	$effect(() => {
+		console.log(inventory.selectedSlot);
+	});
 </script>
 
 <div

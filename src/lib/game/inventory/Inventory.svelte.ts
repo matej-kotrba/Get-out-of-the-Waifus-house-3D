@@ -9,7 +9,7 @@ type InventoryItem = {
 
 class Inventory {
   items: InventoryItem[] = [];
-  #selectedSlot: number = 0;
+  #selectedSlot: number = $state(0);
 
   constructor() {
     for (let i = 0; i < INVENTORY_SIZE; i++) {

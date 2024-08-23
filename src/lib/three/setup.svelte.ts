@@ -1,3 +1,5 @@
+import listenerMachine from "$lib/game/general/ListenerMachine";
+import inventory from "$lib/game/inventory/Inventory.svelte";
 import * as THREE from "three";
 
 export function initialize(canvas: HTMLCanvasElement) {
@@ -65,13 +67,17 @@ export function initializeCameraUpdation(orbit: THREE.Object3D) {
   const minMaxZoom = [0.5, 0.8];
   orbit.scale.setScalar(0.8);
   window.addEventListener('wheel', (event) => {
-    let newScale = orbit.scale.x + event.deltaY * 0.001;
-    if (newScale < minMaxZoom[0]) {
-      newScale = minMaxZoom[0];
-    } else if (newScale > minMaxZoom[1]) {
-      newScale = minMaxZoom[1];
+    if (listenerMachine.keys[";"]) {
+      let newScale = orbit.scale.x + event.deltaY * 0.001;
+      if (newScale < minMaxZoom[0]) {
+        newScale = minMaxZoom[0];
+      } else if (newScale > minMaxZoom[1]) {
+        newScale = minMaxZoom[1];
+      }
+      orbit.scale.setScalar(newScale);
+    } else {
+      inventory.selectedSlot += event.deltaY > 0 ? 1 : -1;
     }
-    orbit.scale.setScalar(newScale);
   }, { signal: mousewheelAbortController.signal });
 
   return {
