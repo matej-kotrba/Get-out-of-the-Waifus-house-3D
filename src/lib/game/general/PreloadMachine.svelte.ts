@@ -1,14 +1,26 @@
 import * as THREE from 'three';
 import { EXRLoader, FBXLoader, RGBELoader } from 'three/examples/jsm/Addons.js';
-import type { GroundItemTemplate } from '../item/ground/GroundItem';
-import { getMacheteItem } from '../item/ground/items/Machete';
-import type { CharacterAction } from '$lib/three/characterControls.svelte';
+import {
+	itemTypeMethodsRecord,
+	type ItemTypeMethodsRecordType
+} from '../item/ground/GroundItem';
+import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 export type PreloadedParts = 'items' | 'animations' | 'models' | 'hdris';
 
-export type ItemType = 'machete';
+const itemsToPreload: ItemTypeMethodsRecordType[] = ['machete'] as const;
+const animationsToPreload = [
+	'idle',
+	'walk',
+	'walkWithItem',
+	'run',
+	'meleeAttack'
+] as const;
+const hdrisToPreload = ['forest'] as const;
 
-type AnimationsToPreload = CharacterAction;
+export type ItemsToPreloadOptions = (typeof itemsToPreload)[number];
+export type AnimationsToPreloadOptions = (typeof animationsToPreload)[number];
+export type HDRIsToPreloadOptions = (typeof hdrisToPreload)[number];
 
 type PromiseResponse = (value: unknown) => void;
 
@@ -22,20 +34,13 @@ class PreloadMachine {
 	});
 
 	// Preloading items data
-	#itemsToPreload: GroundItemTemplate[] = [getMacheteItem()];
-	#itemsLoaded: {
-		[key in ItemType]?: THREE.Group<THREE.Object3DEventMap>;
-	} = {};
+	#itemsToPreload: ItemsToPreloadOptions[] = itemsToPreload;
+	#itemsLoaded: Map<ItemsToPreloadOptions, THREE.Object3D> = new Map();
 
 	// Preloading animations data
-	#animationsToPreload: AnimationsToPreload[] = [
-		'idle',
-		'walk',
-		'walkWithItem',
-		'run',
-		'meleeAttack'
-	];
-	#animationsLoaded: Map<AnimationsToPreload, THREE.AnimationClip> = new Map();
+	#animationsToPreload = animationsToPreload;
+	#animationsLoaded: Map<AnimationsToPreloadOptions, THREE.AnimationClip> =
+		new Map();
 
 	// Preloading models data
 	// #modelstoPreload: string[] = ["machete"];
@@ -45,7 +50,7 @@ class PreloadMachine {
 	> = new Map();
 
 	// Preloading HDRIs
-	#hdrisToPreload: string[] = ['forest'];
+	#hdrisToPreload = hdrisToPreload;
 	#hdrisLoaded: Map<string, THREE.Texture> = new Map();
 
 	// Subscriber properties
@@ -55,8 +60,18 @@ class PreloadMachine {
 		this.preload();
 	}
 
-	get itemsLoaded() {
-		return this.#itemsLoaded;
+	public subscribeOnPreloadDone(callback: () => void) {
+		if (this.isPreloading) {
+			this.#callbacks.push(callback);
+		}
+	}
+
+	public getItemsLoaded(key: ItemsToPreloadOptions) {
+		const original = this.#itemsLoaded.get(key);
+		if (original) {
+			const copy = clone(original);
+			return copy;
+		}
 	}
 
 	get animationsLoaded() {
@@ -70,14 +85,8 @@ class PreloadMachine {
 		}
 	}
 
-	public getLoadedHDRi(key: string) {
+	public getLoadedHDRi(key: HDRIsToPreloadOptions) {
 		return this.#hdrisLoaded.get(key);
-	}
-
-	public subscribeOnPreloadDone(callback: () => void) {
-		if (this.isPreloading) {
-			this.#callbacks.push(callback);
-		}
 	}
 
 	private async preload() {
@@ -106,9 +115,10 @@ class PreloadMachine {
 			res('done');
 		};
 
-		this.#itemsToPreload.forEach((item) => {
-			item.loadModel(loadingManager, (model) => {
-				this.#itemsLoaded[item.type] = model;
+		this.#itemsToPreload.forEach((type) => {
+			const loadFn = itemTypeMethodsRecord[type].loadModel;
+			loadFn(loadingManager, (model) => {
+				this.#itemsLoaded.set(type, model);
 			});
 		});
 	}
