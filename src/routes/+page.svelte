@@ -33,10 +33,6 @@
 	onMount(() => {
 		const { renderer, scene, orbit, camera } = initialize(canvas);
 
-		canvas.addEventListener('click', () => {
-			canvas.requestPointerLock();
-		});
-
 		const plane = new THREE.PlaneGeometry(10, 10);
 		const material = new THREE.MeshBasicMaterial({
 			color: 0xaa4400,
@@ -58,14 +54,14 @@
 
 		const gui = new GUI();
 
-		new RGBELoader().load('/HDRi/forest.hdr', (texture) => {
-			texture.mapping = THREE.EquirectangularReflectionMapping;
-			scene.background = texture;
-			scene.environment = texture;
-		});
+		preloadMachine.subscribeOnPreloadDone(async () => {
+			const hdri = preloadMachine.getLoadedHDRi('forest');
+			if (hdri) {
+				scene.background = hdri;
+				scene.environment = hdri;
+			}
 
-		preloadMachine.subscribeOnPreloadDone(() => {
-			const bot = preloadMachine.modelsLoaded.get('bot');
+			const bot = await preloadMachine.getLoadedModel('bot');
 			if (bot) {
 				charactersControls = new CharacterControls(bot, orbit, camera, 'idle');
 				playerVarsMachine.setup(bot, camera);
@@ -180,7 +176,7 @@
 <Loading />
 <div class="fixed left-0 top-0 h-screen w-screen">
 	<Inventory />
-	<canvas class="h-full w-full" bind:this={canvas}></canvas>
+	<canvas class="h-screen w-screen" bind:this={canvas}></canvas>
 </div>
 
 <!-- <h2 class="text-dancing mt-2 text-center text-7xl font-bold text-white">

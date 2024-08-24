@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { EXRLoader, FBXLoader } from 'three/examples/jsm/Addons.js';
+import { EXRLoader, FBXLoader, RGBELoader } from 'three/examples/jsm/Addons.js';
 import type { GroundItemTemplate } from '../item/ground/GroundItem';
 import { getMacheteItem } from '../item/ground/items/Machete';
 import type { CharacterAction } from '$lib/three/characterControls.svelte';
 
-export type PreloadedParts = 'items' | 'animations' | 'models';
+export type PreloadedParts = 'items' | 'animations' | 'models' | 'hdris';
 
 export type ItemType = 'machete';
 
@@ -17,7 +17,8 @@ class PreloadMachine {
 	public preloadedParts: Record<PreloadedParts, boolean> = $state({
 		items: false,
 		animations: false,
-		models: false
+		models: false,
+		hdris: false
 	});
 
 	// Preloading items data
@@ -38,7 +39,14 @@ class PreloadMachine {
 
 	// Preloading models data
 	// #modelstoPreload: string[] = ["machete"];
-	#modelsLoaded: Map<string, THREE.Group<THREE.Object3DEventMap>> = new Map();
+	#modelsLoaded: Map<
+		string,
+		() => Promise<THREE.Group<THREE.Object3DEventMap>>
+	> = new Map();
+
+	// Preloading HDRIs
+	#hdrisToPreload: string[] = ['forest'];
+	#hdrisLoaded: Map<string, THREE.Texture> = new Map();
 
 	// Subscriber properties
 	#callbacks: (() => void)[] = [];
@@ -55,8 +63,15 @@ class PreloadMachine {
 		return this.#animationsLoaded;
 	}
 
-	get modelsLoaded() {
-		return this.#modelsLoaded;
+	public async getLoadedModel(key: string) {
+		const fn = this.#modelsLoaded.get(key);
+		if (fn) {
+			return await fn();
+		}
+	}
+
+	public getLoadedHDRi(key: string) {
+		return this.#hdrisLoaded.get(key);
 	}
 
 	public subscribeOnPreloadDone(callback: () => void) {
@@ -66,11 +81,17 @@ class PreloadMachine {
 	}
 
 	private async preload() {
+		THREE.Cache.enabled = true;
+		await this.preloadHandler(this.preloadModels);
+		// Disable cache to prevent caching of other resources
+		THREE.Cache.enabled = false;
 		await Promise.all([
 			this.preloadHandler(this.preloadItemModels),
 			this.preloadHandler(this.preloadAnimations),
-			this.preloadHandler(this.preloadModels)
+			this.preloadHandler(this.preloadHDRIs)
 		]);
+		// Enable it again so it can be used later
+		THREE.Cache.enabled = true;
 		this.isPreloading = false;
 		this.#callbacks.forEach((callback) => callback());
 		this.#callbacks = [];
@@ -111,19 +132,52 @@ class PreloadMachine {
 	private preloadModels(res: PromiseResponse) {
 		const loadingManager = new THREE.LoadingManager();
 		const loader = new FBXLoader(loadingManager);
-		// loader.setPath('/');
 
 		loadingManager.onLoad = () => {
 			preloadMachine.preloadedParts['models'] = true;
 			res('done');
 		};
 
-		loader.load('models/characters/bot.fbx', (fbxTemp) => {
-			fbxTemp.traverse((c) => {
-				c.castShadow = true;
+		const loadFn = (res: PromiseResponse) => {
+			loader.load('models/characters/bot.fbx', (fbxTemp) => {
+				fbxTemp.traverse((c) => {
+					c.castShadow = true;
+				});
+				fbxTemp.scale.setScalar(0.01);
+				res(fbxTemp);
 			});
-			fbxTemp.scale.setScalar(0.01);
-			this.#modelsLoaded.set('bot', fbxTemp);
+		};
+		loadFn(() => {});
+
+		const wrapped = async () => {
+			const fbx: THREE.Group<THREE.Object3DEventMap> = await new Promise(
+				(res) => {
+					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+					//@ts-ignore
+					loadFn(res);
+				}
+			);
+
+			return fbx;
+		};
+
+		this.#modelsLoaded.set('bot', wrapped);
+	}
+
+	private preloadHDRIs(res: PromiseResponse) {
+		const loadingManager = new THREE.LoadingManager();
+		const loader = new RGBELoader(loadingManager);
+
+		loadingManager.onLoad = () => {
+			preloadMachine.preloadedParts['hdris'] = true;
+			res('done');
+		};
+
+		this.#hdrisToPreload.forEach((item) => {
+			loader.load(`HDRi/${item}.hdr`, (texture) => {
+				texture.mapping = THREE.EquirectangularReflectionMapping;
+				this.#hdrisLoaded.set(item, texture);
+			});
 		});
 	}
 
