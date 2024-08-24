@@ -69,16 +69,6 @@
 			} else {
 				throw new Error('Bot model not loaded');
 			}
-
-			const machete1 = preloadMachine.getItemsLoaded('machete');
-			const machete2 = preloadMachine.getItemsLoaded('machete');
-			if (machete1) {
-				machete1.position.x = 2;
-				scene.add(machete1);
-			}
-			if (machete2) {
-				scene.add(machete2);
-			}
 		});
 
 		// loader.load(
