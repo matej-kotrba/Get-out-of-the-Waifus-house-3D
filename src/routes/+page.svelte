@@ -7,7 +7,10 @@
 		type CharacterAction,
 		type CharacterAnimationsMap
 	} from '$lib/three/characterControls.svelte';
-	import { initialize, initializeCameraUpdation } from '$lib/three/setup.svelte';
+	import {
+		initialize,
+		initializeCameraUpdation
+	} from '$lib/three/setup.svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import * as THREE from 'three';
 	import { GUI } from 'dat.gui';
@@ -21,6 +24,7 @@
 	import playerVarsMachine from '$lib/game/general/PlayerVarsMachine';
 	import listenerMachine from '$lib/game/general/ListenerMachine';
 	import Loading from '$lib/components/game/ingame-ui/loading.svelte';
+	import preloadMachine from '$lib/game/general/PreloadMachine.svelte';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -34,7 +38,10 @@
 		});
 
 		const plane = new THREE.PlaneGeometry(10, 10);
-		const material = new THREE.MeshBasicMaterial({ color: 0xaa4400, side: THREE.DoubleSide });
+		const material = new THREE.MeshBasicMaterial({
+			color: 0xaa4400,
+			side: THREE.DoubleSide
+		});
 		const planeMesh = new THREE.Mesh(plane, material);
 		planeMesh.receiveShadow = true;
 		planeMesh.rotation.x = Math.PI / 2;
@@ -44,13 +51,10 @@
 		orbit.add(camera);
 		scene.add(orbit);
 
-		const { destroy: cameraOnMouseMoveRotationDestroy } = initializeCameraUpdation(orbit);
+		const { destroy: cameraOnMouseMoveRotationDestroy } =
+			initializeCameraUpdation(orbit);
 
 		let charactersControls: CharacterControls;
-
-		const animationsMap: CharacterAnimationsMap = new Map();
-		let fbx = new THREE.Group<THREE.Object3DEventMap>();
-		let mixer = new THREE.AnimationMixer(fbx);
 
 		const gui = new GUI();
 
@@ -60,90 +64,95 @@
 			scene.environment = texture;
 		});
 
-		const loadingManager = new THREE.LoadingManager();
-		loadingManager.addHandler(/\.exr$/i, new EXRLoader());
+		preloadMachine.subscribeOnPreloadDone(() => {
+			const bot = preloadMachine.modelsLoaded.get('bot');
+			if (bot) {
+				charactersControls = new CharacterControls(bot, orbit, camera, 'idle');
+				playerVarsMachine.setup(bot, camera);
+				scene.add(bot);
+			} else {
+				throw new Error('Bot model not loaded');
+			}
+		});
 
-		const loader = new FBXLoader(loadingManager);
-		loader.setPath('/');
+		// loader.load(
+		// 	'models/characters/bot.fbx',
+		// 	(fbxTemp) => {
+		// 		fbx = fbxTemp;
+		// 		fbxTemp.traverse((c) => {
+		// 			c.castShadow = true;
+		// 		});
+		// 		fbxTemp.scale.setScalar(0.01);
 
-		loader.load(
-			'models/characters/bot.fbx',
-			(fbxTemp) => {
-				fbx = fbxTemp;
-				fbxTemp.traverse((c) => {
-					c.castShadow = true;
-				});
-				fbxTemp.scale.setScalar(0.01);
+		// 		playerVarsMachine.setup(fbx, camera);
 
-				playerVarsMachine.setup(fbx, camera);
+		// const modelSettings = {
+		// 	scale: 0.1
+		// };
 
-				// const modelSettings = {
-				// 	scale: 0.1
-				// };
+		// gui.add(modelSettings, 'scale', 0.001, 1).onChange((value) => {
+		// 	fbx.scale.setScalar(value);
+		// });
 
-				// gui.add(modelSettings, 'scale', 0.001, 1).onChange((value) => {
-				// 	fbx.scale.setScalar(value);
-				// });
+		// scene.add(fbxTemp);
 
-				scene.add(fbxTemp);
+		// mixer = new THREE.AnimationMixer(fbx);
 
-				// mixer = new THREE.AnimationMixer(fbx);
+		// function onLoad(animName: CharacterAction, anim: THREE.Group<THREE.Object3DEventMap>) {
+		// 	const clip = anim.animations[0];
+		// 	const action = mixer.clipAction(clip);
 
-				// function onLoad(animName: CharacterAction, anim: THREE.Group<THREE.Object3DEventMap>) {
-				// 	const clip = anim.animations[0];
-				// 	const action = mixer.clipAction(clip);
+		// 	animationsMap.set(animName, action);
+		// }
 
-				// 	animationsMap.set(animName, action);
-				// }
+		// Loading animations
+		// loader.load('animations/idle.fbx', (a) => onLoad('idle', a));
+		// loader.load('animations/walking.fbx', (a) => onLoad('walk', a));
+		// loader.load('animations/walking-with-item.fbx', (a) => onLoad('walkWithItem', a));
+		// loader.load('animations/running.fbx', (a) => onLoad('run', a));
+		// loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
 
-				// Loading animations
-				// loader.load('animations/idle.fbx', (a) => onLoad('idle', a));
-				// loader.load('animations/walking.fbx', (a) => onLoad('walk', a));
-				// loader.load('animations/walking-with-item.fbx', (a) => onLoad('walkWithItem', a));
-				// loader.load('animations/running.fbx', (a) => onLoad('run', a));
-				// loader.load('animations/melee-attack.fbx', (a) => onLoad('meleeAttack', a));
+		// Loading object models
+		// const groundItmeTest = newItemFactory.createGroundItem(
+		// 	getMacheteItem(),
+		// 	new THREE.Vector3(7.6, 0, 3.2)
+		// );
+		// groundItmeTest.then((item) => {
+		// 	item.addToScene(scene);
+		// });
 
-				// Loading object models
-				// const groundItmeTest = newItemFactory.createGroundItem(
-				// 	getMacheteItem(),
-				// 	new THREE.Vector3(7.6, 0, 3.2)
-				// );
-				// groundItmeTest.then((item) => {
-				// 	item.addToScene(scene);
-				// });
+		// loadMachine.loadModel({
+		// 	path: '/objects/machete/',
+		// 	modelFileName: 'machete_1k.fbx',
+		// 	onLoad: (machete) => {
+		// 		machete.scale.setScalar(1);
 
-				// loadMachine.loadModel({
-				// 	path: '/objects/machete/',
-				// 	modelFileName: 'machete_1k.fbx',
-				// 	onLoad: (machete) => {
-				// 		machete.scale.setScalar(1);
+		// 		const rightHand = fbx.getObjectByName('mixamorigRightHandIndex1');
+		// 		if (rightHand) {
+		// 			rightHand.add(machete);
+		// 			machete.position.x += 7.6;
+		// 			machete.position.z += 3.2;
 
-				// 		const rightHand = fbx.getObjectByName('mixamorigRightHandIndex1');
-				// 		if (rightHand) {
-				// 			rightHand.add(machete);
-				// 			machete.position.x += 7.6;
-				// 			machete.position.z += 3.2;
+		// 			machete.rotation.x = -1.2;
+		// 			machete.rotation.y = 0;
+		// 			machete.rotation.z = -1.6;
+		// 		}
+		// 	}
+		// });
 
-				// 			machete.rotation.x = -1.2;
-				// 			machete.rotation.y = 0;
-				// 			machete.rotation.z = -1.6;
-				// 		}
-				// 	}
-				// });
-
-				// gui.add(machete.position, 'x', -10, 10);
-				// gui.add(machete.position, 'y', -10, 10);
-				// gui.add(machete.position, 'z', -10, 10);
-				// gui.add(machete.rotation, 'x', -Math.PI, Math.PI);
-				// gui.add(machete.rotation, 'y', -Math.PI, Math.PI);
-				// gui.add(machete.rotation, 'z', -Math.PI, Math.PI);
-			},
-			undefined,
-			(e) => console.log(e)
-		);
-		loadingManager.onLoad = () => {
-			charactersControls = new CharacterControls(fbx, orbit, camera, 'idle');
-		};
+		// gui.add(machete.position, 'x', -10, 10);
+		// gui.add(machete.position, 'y', -10, 10);
+		// gui.add(machete.position, 'z', -10, 10);
+		// gui.add(machete.rotation, 'x', -Math.PI, Math.PI);
+		// gui.add(machete.rotation, 'y', -Math.PI, Math.PI);
+		// gui.add(machete.rotation, 'z', -Math.PI, Math.PI);
+		// },
+		// 	undefined,
+		// 	(e) => console.log(e)
+		// );
+		// loadingManager.onLoad = () => {
+		// 	charactersControls = new CharacterControls(fbx, orbit, camera, 'idle');
+		// };
 
 		updateMachine.subscribe((delta) => {
 			// lightRay.translateY(0.005);
