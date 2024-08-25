@@ -43,11 +43,8 @@ class PreloadMachine {
 		new Map();
 
 	// Preloading models data
-	// #modelstoPreload: string[] = ["machete"];
-	#modelsLoaded: Map<
-		string,
-		() => Promise<THREE.Group<THREE.Object3DEventMap>>
-	> = new Map();
+	// #modelsToPreload: string[] = ["bot"];
+	#modelsLoaded: Map<string, THREE.Group<THREE.Object3DEventMap>> = new Map();
 
 	// Preloading HDRIs
 	#hdrisToPreload = hdrisToPreload;
@@ -78,11 +75,10 @@ class PreloadMachine {
 		return this.#animationsLoaded;
 	}
 
-	public async getLoadedModel(key: string) {
-		const fn = this.#modelsLoaded.get(key);
-		if (fn) {
-			return await fn();
-		}
+	public getLoadedModel(key: string) {
+		const model = this.#modelsLoaded.get(key);
+		if (!model) return;
+		return clone(model);
 	}
 
 	public getLoadedHDRi(key: HDRIsToPreloadOptions) {
@@ -148,30 +144,13 @@ class PreloadMachine {
 			res('done');
 		};
 
-		const loadFn = (res: PromiseResponse) => {
-			loader.load('models/characters/bot.fbx', (fbxTemp) => {
-				fbxTemp.traverse((c) => {
-					c.castShadow = true;
-				});
-				fbxTemp.scale.setScalar(0.01);
-				res(fbxTemp);
+		loader.load('models/characters/bot.fbx', (fbxTemp) => {
+			fbxTemp.traverse((c) => {
+				c.castShadow = true;
 			});
-		};
-		loadFn(() => {});
-
-		const wrapped = async () => {
-			const fbx: THREE.Group<THREE.Object3DEventMap> = await new Promise(
-				(res) => {
-					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-					//@ts-ignore
-					loadFn(res);
-				}
-			);
-
-			return fbx;
-		};
-
-		this.#modelsLoaded.set('bot', wrapped);
+			fbxTemp.scale.setScalar(0.01);
+			this.#modelsLoaded.set('bot', fbxTemp);
+		});
 	}
 
 	private preloadHDRIs(res: PromiseResponse) {

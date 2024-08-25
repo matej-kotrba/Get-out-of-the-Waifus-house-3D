@@ -34,7 +34,7 @@
 	onMount(() => {
 		initialize.initialize(canvas);
 		const { camera, orbit, renderer, scene } = initialize.getProperties();
-		player.initialize();
+		// player.initialize();
 
 		const plane = new THREE.PlaneGeometry(10, 10);
 		const material = new THREE.MeshBasicMaterial({
@@ -64,7 +64,7 @@
 				scene.environment = hdri;
 			}
 
-			const bot = await preloadMachine.getLoadedModel('bot');
+			const bot = preloadMachine.getLoadedModel('bot');
 			if (bot) {
 				charactersControls = new CharacterControls(bot, orbit, camera, 'idle');
 				playerVarsMachine.setup(bot, camera);
