@@ -3,7 +3,7 @@
 	import { inventoryItemsRecord } from '$lib/game/item/inventory/items-record';
 </script>
 
-{#if player.inventory}
+{#if player.inventory?.selectedSlot !== undefined}
 	<div
 		class="fixed bottom-0 right-0 flex items-end"
 		style="width: {player.inventory['items'].length * 75}px;"

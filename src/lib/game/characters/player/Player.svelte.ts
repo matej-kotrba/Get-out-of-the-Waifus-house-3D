@@ -11,7 +11,7 @@ class Player {
 	maxHp: number;
 
 	// Player linked data
-	inventory: Inventory | undefined;
+	inventory: Inventory | undefined = $state(undefined);
 	characterControls: CharacterControls | undefined;
 
 	constructor() {
@@ -21,11 +21,10 @@ class Player {
 
 	public async initialize() {
 		const { orbit, camera } = initialize.getProperties();
-		const model = await preloadMachine.getLoadedModel('bot');
+		const model = preloadMachine.getLoadedModel('bot');
 		if (!model) {
 			throw new Error('Player model not loaded');
 		}
-		console.log(initialize.getProperties());
 		this.inventory = new Inventory();
 		this.characterControls = new CharacterControls(
 			model,

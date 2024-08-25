@@ -34,7 +34,6 @@
 	onMount(() => {
 		initialize.initialize(canvas);
 		const { camera, orbit, renderer, scene } = initialize.getProperties();
-		// player.initialize();
 
 		const plane = new THREE.PlaneGeometry(10, 10);
 		const material = new THREE.MeshBasicMaterial({
@@ -58,6 +57,8 @@
 		const gui = new GUI();
 
 		preloadMachine.subscribeOnPreloadDone(async () => {
+			player.initialize();
+
 			const hdri = preloadMachine.getLoadedHDRi('forest');
 			if (hdri) {
 				scene.background = hdri;
