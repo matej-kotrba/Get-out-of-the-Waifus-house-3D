@@ -1,6 +1,6 @@
 export type KeypressListenerKeys = Record<string, boolean>;
 
-class ListenerMachine {
+class ListenerService {
 	keys: KeypressListenerKeys = {};
 
 	constructor() {
@@ -22,5 +22,5 @@ class ListenerMachine {
 	}
 }
 
-const listenerMachine = new ListenerMachine();
+const listenerMachine = new ListenerService();
 export default listenerMachine;

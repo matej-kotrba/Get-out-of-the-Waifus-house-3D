@@ -1,7 +1,7 @@
 import Inventory from '$lib/game/inventory/Inventory.svelte';
 import { CharacterControls } from './characterControls';
 import { initialize } from '$lib/three/setup.svelte';
-import preloadMachine from '$lib/game/general/PreloadMachine.svelte';
+import preloadMachine from '$lib/game/general/PreloadService.svelte';
 
 class Player {
 	isInitialized: boolean = false;

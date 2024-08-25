@@ -1,9 +1,11 @@
-import listenerMachine from '$lib/game/general/ListenerMachine';
+import listenerMachine from '$lib/game/general/ListenerService';
 import * as THREE from 'three';
 import player from '$lib/game/characters/player/Player.svelte';
+import { CSS2DRenderer } from 'three/examples/jsm/Addons.js';
 
 class Initialize {
 	renderer: THREE.WebGLRenderer | undefined;
+	cssRenderer: CSS2DRenderer | undefined;
 	camera: THREE.PerspectiveCamera | undefined;
 	scene: THREE.Scene | undefined;
 	orbit: THREE.Object3D | undefined;
@@ -11,6 +13,10 @@ class Initialize {
 	public getProperties() {
 		return {
 			renderer: this.renderer as Exclude<typeof this.renderer, undefined>,
+			cssRenderer: this.cssRenderer as Exclude<
+				typeof this.cssRenderer,
+				undefined
+			>,
 			camera: this.camera as Exclude<typeof this.camera, undefined>,
 			scene: this.scene as Exclude<typeof this.scene, undefined>,
 			orbit: this.orbit as Exclude<typeof this.orbit, undefined>
@@ -26,7 +32,18 @@ class Initialize {
 		this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 		this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
+		// Setup CSS2DRenderer
+		this.cssRenderer = new CSS2DRenderer();
+		this.cssRenderer.setSize(window.innerWidth, window.innerHeight);
+		this.cssRenderer.domElement.style.position = 'absolute';
+		this.cssRenderer.domElement.style.top = '0';
+		this.cssRenderer.domElement.style.pointerEvents = 'none';
+		document.body.appendChild(this.cssRenderer.domElement);
+
+		// Setup Scene
 		this.scene = new THREE.Scene();
+
+		// Setup Camera
 		this.camera = new THREE.PerspectiveCamera(75, 2, 0.1, 100);
 		this.camera.position.z = 5;
 		this.camera.position.y = 3;
@@ -45,10 +62,11 @@ class Initialize {
 		this.scene.add(directionalLight);
 
 		const onWindowResize = () => {
-			if (this.camera && this.renderer) {
+			if (this.camera && this.renderer && this.cssRenderer) {
 				this.camera.aspect = window.innerWidth / window.innerHeight;
 				this.camera.updateProjectionMatrix();
 				this.renderer.setSize(window.innerWidth, window.innerHeight);
+				this.cssRenderer.setSize(window.innerWidth, window.innerHeight);
 			}
 		};
 

@@ -17,16 +17,16 @@
 	import { FBXLoader } from 'three/examples/jsm/Addons.js';
 	import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 	import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-	import updateMachine from '$lib/game/general/UpdateMachine';
-	import loadMachine from '$lib/game/general/LoadMachine';
+	import updateMachine from '$lib/game/general/UpdateService';
+	import loadMachine from '$lib/game/general/LoadService';
 	import newItemFactory from '$lib/game/item/NewItemFactory';
 	import { getMacheteItem } from '$lib/game/item/ground/items/Machete';
-	import playerVarsMachine from '$lib/game/general/PlayerVarsMachine';
-	import listenerMachine from '$lib/game/general/ListenerMachine';
+	import playerVarsMachine from '$lib/game/general/PlayerVarsService';
+	import listenerMachine from '$lib/game/general/ListenerService';
 	import Loading from '$lib/components/game/ingame-ui/loading.svelte';
-	import preloadMachine from '$lib/game/general/PreloadMachine.svelte';
+	import preloadMachine from '$lib/game/general/PreloadService.svelte';
 	import player from '$lib/game/characters/player/Player.svelte';
-	import worldObjects from '$lib/game/general/WorldObjectsMachine';
+	import worldObjects from '$lib/game/general/WorldObjects';
 
 	const textToAnimate = 'Get out of the Waifus house';
 

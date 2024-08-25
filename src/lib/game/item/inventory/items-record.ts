@@ -1,4 +1,4 @@
-import type { ItemsToPreloadOptions } from '$lib/game/general/PreloadMachine.svelte';
+import type { ItemsToPreloadOptions } from '$lib/game/general/PreloadService.svelte';
 
 type InventoryItem = {
 	displayName: string;

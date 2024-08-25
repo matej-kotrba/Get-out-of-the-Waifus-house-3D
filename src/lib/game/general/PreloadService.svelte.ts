@@ -24,7 +24,7 @@ export type HDRIsToPreloadOptions = (typeof hdrisToPreload)[number];
 
 type PromiseResponse = (value: unknown) => void;
 
-class PreloadMachine {
+class PreloadService {
 	public isPreloading: boolean = $state(true);
 	public preloadedParts: Record<PreloadedParts, boolean> = $state({
 		items: false,
@@ -179,5 +179,5 @@ class PreloadMachine {
 	}
 }
 
-const preloadMachine = new PreloadMachine();
+const preloadMachine = new PreloadService();
 export default preloadMachine;

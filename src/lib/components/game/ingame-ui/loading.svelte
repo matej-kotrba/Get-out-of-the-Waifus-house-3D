@@ -1,5 +1,5 @@
 <script lang="ts">
-	import preloadMachine from '$lib/game/general/PreloadMachine.svelte';
+	import preloadMachine from '$lib/game/general/PreloadService.svelte';
 </script>
 
 {#if preloadMachine && preloadMachine.isPreloading === true}

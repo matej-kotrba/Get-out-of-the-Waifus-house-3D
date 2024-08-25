@@ -1,6 +1,6 @@
 import { GroundItem, type GroundItemTemplate } from './ground/GroundItem';
 import * as THREE from 'three';
-import preloadMachine from '../general/PreloadMachine.svelte';
+import preloadMachine from '../general/PreloadService.svelte';
 
 class NewItemFactory {
 	public createGroundItem(

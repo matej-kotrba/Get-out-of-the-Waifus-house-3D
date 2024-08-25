@@ -1,8 +1,9 @@
 import * as THREE from 'three';
-import type { KeypressListenerKeys } from '$lib/game/general/ListenerMachine';
+import type { KeypressListenerKeys } from '$lib/game/general/ListenerService';
 import preloadMachine, {
 	type AnimationsToPreloadOptions
-} from '$lib/game/general/PreloadMachine.svelte';
+} from '$lib/game/general/PreloadService.svelte';
+import worldObjects from '$lib/game/general/WorldObjects';
 
 const DIRECTIONS = {
 	forward: 'w',
@@ -79,6 +80,8 @@ export class CharacterControls {
 	}
 
 	public update(delta: number, keys: KeypressListenerKeys) {
+		this.isAbleToInteractWithGroundItem();
+
 		const directionPressed = Object.values(DIRECTIONS).some(
 			(key) => keys[key] === true
 		);
@@ -119,7 +122,15 @@ export class CharacterControls {
 		}
 	}
 
-	private isAbleToInteractWithGroundItem() {}
+	private isAbleToInteractWithGroundItem() {
+		for (const item of worldObjects.groundItems) {
+			const distance = this.model.position.distanceTo(item.model.position);
+			if (distance < 2) {
+				console.log('AAAAAA');
+				return true;
+			}
+		}
+	}
 
 	private isMobilityAction(action: CharacterAction) {
 		return action === 'run' || action === 'walk' || action === 'walkWithItem';

@@ -1,6 +1,6 @@
 import rayFactory from '$lib/game/effects/Ray';
-import type { ItemsToPreloadOptions } from '$lib/game/general/PreloadMachine.svelte';
-import updateMachine from '$lib/game/general/UpdateMachine';
+import type { ItemsToPreloadOptions } from '$lib/game/general/PreloadService.svelte';
+import updateMachine from '$lib/game/general/UpdateService';
 import * as THREE from 'three';
 import { getMacheteItem } from './items/Machete';
 
