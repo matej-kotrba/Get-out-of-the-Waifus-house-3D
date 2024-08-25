@@ -36,6 +36,6 @@ class UpdateService {
 	}
 }
 
-const updateMachine = new UpdateService();
+const updateService = new UpdateService();
 
-export default updateMachine;
+export default updateService;

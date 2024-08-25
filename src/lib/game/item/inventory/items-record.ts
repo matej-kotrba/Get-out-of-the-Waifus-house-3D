@@ -3,6 +3,7 @@ import type { ItemsToPreloadOptions } from '$lib/game/general/PreloadService.sve
 type InventoryItem = {
 	displayName: string;
 	image: string;
+	description?: string;
 };
 
 export type InventoryKeys = 'fist' | ItemsToPreloadOptions;
@@ -16,6 +17,8 @@ export const inventoryItemsRecord: InventoryItemsRecord = {
 	},
 	machete: {
 		displayName: 'Machete',
-		image: '/models/images/inventory/machete.png'
+		image: '/models/images/inventory/machete.png',
+		description:
+			'Sharp close-range weapon used primarly for cutting down bushes and trees. Can be used differently though.'
 	}
 };

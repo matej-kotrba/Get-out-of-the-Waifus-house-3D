@@ -1,6 +1,6 @@
 import rayFactory from '$lib/game/effects/Ray';
 import type { ItemsToPreloadOptions } from '$lib/game/general/PreloadService.svelte';
-import updateMachine from '$lib/game/general/UpdateService';
+import updateService from '$lib/game/general/UpdateService';
 import * as THREE from 'three';
 import { getMacheteItem } from './items/Machete';
 
@@ -50,7 +50,7 @@ export class GroundItem {
 			position: restProps.initialPosition
 		});
 		rayFactory.addRaysToScene(rays, this.rays);
-		updateMachine.subscribe((delta, time) => {
+		updateService.subscribe((delta, time) => {
 			rayFactory.rayAnimateEffect(rays, delta, time);
 		});
 

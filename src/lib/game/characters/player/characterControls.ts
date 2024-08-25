@@ -4,6 +4,7 @@ import preloadMachine, {
 	type AnimationsToPreloadOptions
 } from '$lib/game/general/PreloadService.svelte';
 import worldObjects from '$lib/game/general/WorldObjects';
+import tooltipService from '$lib/game/general/TooltipService';
 
 const DIRECTIONS = {
 	forward: 'w',
@@ -80,7 +81,12 @@ export class CharacterControls {
 	}
 
 	public update(delta: number, keys: KeypressListenerKeys) {
-		this.isAbleToInteractWithGroundItem();
+		if (this.isAbleToInteractWithGroundItem()) {
+			const groundItem = this.getClosestGroundItem();
+			tooltipService.setFromGroundItem(groundItem);
+		} else {
+			tooltipService.clear();
+		}
 
 		const directionPressed = Object.values(DIRECTIONS).some(
 			(key) => keys[key] === true
@@ -126,10 +132,23 @@ export class CharacterControls {
 		for (const item of worldObjects.groundItems) {
 			const distance = this.model.position.distanceTo(item.model.position);
 			if (distance < 2) {
-				console.log('AAAAAA');
 				return true;
 			}
 		}
+	}
+
+	private getClosestGroundItem() {
+		let closestItem = worldObjects.groundItems[0];
+		for (const item of worldObjects.groundItems) {
+			const distance = this.model.position.distanceTo(item.model.position);
+			if (
+				distance < 2 &&
+				distance < this.model.position.distanceTo(closestItem.model.position)
+			) {
+				closestItem = item;
+			}
+		}
+		return closestItem;
 	}
 
 	private isMobilityAction(action: CharacterAction) {

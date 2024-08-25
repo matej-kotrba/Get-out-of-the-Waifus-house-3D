@@ -17,7 +17,7 @@
 	import { FBXLoader } from 'three/examples/jsm/Addons.js';
 	import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 	import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-	import updateMachine from '$lib/game/general/UpdateService';
+	import updateService from '$lib/game/general/UpdateService';
 	import loadMachine from '$lib/game/general/LoadService';
 	import newItemFactory from '$lib/game/item/NewItemFactory';
 	import { getMacheteItem } from '$lib/game/item/ground/items/Machete';
@@ -34,7 +34,8 @@
 
 	onMount(() => {
 		initialize.initialize(canvas);
-		const { camera, orbit, renderer, scene } = initialize.getProperties();
+		const { camera, orbit, renderer, scene, cssRenderer } =
+			initialize.getProperties();
 
 		const plane = new THREE.PlaneGeometry(10, 10);
 		const material = new THREE.MeshBasicMaterial({
@@ -166,12 +167,12 @@
 		// 	charactersControls = new CharacterControls(fbx, orbit, camera, 'idle');
 		// };
 
-		updateMachine.subscribe((delta) => {
-			// lightRay.translateY(0.005);
+		updateService.subscribe((delta) => {
 			charactersControls?.update(delta, listenerMachine.keys);
 			renderer.render(scene, camera);
+			cssRenderer.render(scene, camera);
 		});
-		updateMachine.start();
+		updateService.start();
 
 		return () => {
 			listenerMachine.destroy();
