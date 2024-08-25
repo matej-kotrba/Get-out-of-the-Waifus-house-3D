@@ -7,7 +7,7 @@ type InventoryItem = {
 	slotId: number;
 };
 
-class Inventory {
+export default class Inventory {
 	items: InventoryItem[] = [];
 	#selectedSlot: number = $state(0);
 
@@ -18,7 +18,11 @@ class Inventory {
 				prop: keyof InventoryItem,
 				value: unknown
 			) => {
-				console.log('Setting', prop, 'to', value, 'with target', target);
+				// console.log('Setting', prop, 'to', value, 'with target', target);
+				if (prop === 'id') {
+					target['id'] = value as InventoryKeys;
+				}
+
 				return true;
 			}
 		};
@@ -44,9 +48,4 @@ class Inventory {
 			this.#selectedSlot = index;
 		}
 	}
-
-	private loadInventoryItems() {}
 }
-
-const inventory = new Inventory();
-export default inventory;

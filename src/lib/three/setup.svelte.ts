@@ -1,49 +1,67 @@
 import listenerMachine from '$lib/game/general/ListenerMachine';
-import inventory from '$lib/game/inventory/Inventory.svelte';
 import * as THREE from 'three';
+import player from '$lib/game/characters/player/Player.svelte';
 
-export function initialize(canvas: HTMLCanvasElement) {
-	// Setup Three.js
-	const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-	renderer.setPixelRatio(window.devicePixelRatio);
-	renderer.shadowMap.enabled = true;
-	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-	renderer.outputColorSpace = THREE.SRGBColorSpace;
-	renderer.toneMapping = THREE.ACESFilmicToneMapping;
+class Initialize {
+	renderer: THREE.WebGLRenderer | undefined;
+	camera: THREE.PerspectiveCamera | undefined;
+	scene: THREE.Scene | undefined;
+	orbit: THREE.Object3D | undefined;
 
-	const scene = new THREE.Scene();
-	const camera = new THREE.PerspectiveCamera(75, 2, 0.1, 100);
-	camera.position.z = 5;
-	camera.position.y = 3;
-
-	// Setup OrbitControls
-	const orbit = new THREE.Object3D();
-	orbit.rotation.order = 'YXZ';
-
-	// Basic lighting
-	const light = new THREE.AmbientLight(0xffffff, 0.5);
-	scene.add(light);
-
-	const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-	directionalLight.position.set(5, 5, 5);
-	directionalLight.castShadow = true;
-	scene.add(directionalLight);
-
-	function onWindowResize() {
-		camera.aspect = window.innerWidth / window.innerHeight;
-		camera.updateProjectionMatrix();
-		renderer.setSize(window.innerWidth, window.innerHeight);
+	public getProperties() {
+		return {
+			renderer: this.renderer as Exclude<typeof this.renderer, undefined>,
+			camera: this.camera as Exclude<typeof this.camera, undefined>,
+			scene: this.scene as Exclude<typeof this.scene, undefined>,
+			orbit: this.orbit as Exclude<typeof this.orbit, undefined>
+		};
 	}
 
-	window.addEventListener('resize', onWindowResize);
-	onWindowResize();
+	public initialize(canvas: HTMLCanvasElement) {
+		// Setup Three.js
+		this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+		this.renderer.setPixelRatio(window.devicePixelRatio);
+		this.renderer.shadowMap.enabled = true;
+		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+		this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
-	canvas.addEventListener('click', () => {
-		canvas.requestPointerLock();
-	});
+		this.scene = new THREE.Scene();
+		this.camera = new THREE.PerspectiveCamera(75, 2, 0.1, 100);
+		this.camera.position.z = 5;
+		this.camera.position.y = 3;
 
-	return { renderer, scene, camera, orbit };
+		// Setup OrbitControls
+		this.orbit = new THREE.Object3D();
+		this.orbit.rotation.order = 'YXZ';
+
+		// Basic lighting
+		const light = new THREE.AmbientLight(0xffffff, 0.5);
+		this.scene.add(light);
+
+		const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+		directionalLight.position.set(5, 5, 5);
+		directionalLight.castShadow = true;
+		this.scene.add(directionalLight);
+
+		const onWindowResize = () => {
+			if (this.camera && this.renderer) {
+				this.camera.aspect = window.innerWidth / window.innerHeight;
+				this.camera.updateProjectionMatrix();
+				this.renderer.setSize(window.innerWidth, window.innerHeight);
+			}
+		};
+
+		window.addEventListener('resize', onWindowResize);
+		onWindowResize();
+
+		canvas.addEventListener('click', () => {
+			canvas.requestPointerLock();
+		});
+	}
 }
+
+export const initialize = new Initialize();
 
 export function initializeCameraUpdation(orbit: THREE.Object3D) {
 	function onMouseMove(event: MouseEvent) {
@@ -82,7 +100,9 @@ export function initializeCameraUpdation(orbit: THREE.Object3D) {
 				}
 				orbit.scale.setScalar(newScale);
 			} else {
-				inventory.selectedSlot += event.deltaY > 0 ? 1 : -1;
+				if (player.inventory) {
+					player.inventory.selectedSlot += event.deltaY > 0 ? 1 : -1;
+				}
 			}
 		},
 		{ signal: mousewheelAbortController.signal }

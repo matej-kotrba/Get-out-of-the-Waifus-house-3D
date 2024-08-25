@@ -6,7 +6,7 @@
 		CharacterControls,
 		type CharacterAction,
 		type CharacterAnimationsMap
-	} from '$lib/three/characterControls.svelte';
+	} from '$lib/game/characters/player/characterControls';
 	import {
 		initialize,
 		initializeCameraUpdation
@@ -25,13 +25,16 @@
 	import listenerMachine from '$lib/game/general/ListenerMachine';
 	import Loading from '$lib/components/game/ingame-ui/loading.svelte';
 	import preloadMachine from '$lib/game/general/PreloadMachine.svelte';
+	import player from '$lib/game/characters/player/Player.svelte';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
 	let canvas: HTMLCanvasElement;
 
 	onMount(() => {
-		const { renderer, scene, orbit, camera } = initialize(canvas);
+		initialize.initialize(canvas);
+		const { camera, orbit, renderer, scene } = initialize.getProperties();
+		player.initialize();
 
 		const plane = new THREE.PlaneGeometry(10, 10);
 		const material = new THREE.MeshBasicMaterial({
