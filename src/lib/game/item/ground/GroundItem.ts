@@ -21,7 +21,7 @@ export type GroundItemTemplate = {
 };
 
 export type GroundItemRestProps = {
-	model: THREE.Group<THREE.Object3DEventMap>;
+	model: THREE.Object3D<THREE.Object3DEventMap>;
 	initialPosition: THREE.Vector3;
 };
 

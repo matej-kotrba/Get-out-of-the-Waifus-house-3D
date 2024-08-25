@@ -63,7 +63,7 @@ class PreloadMachine {
 		}
 	}
 
-	public getItemsLoaded(key: ItemsToPreloadOptions) {
+	public getLoadedItem(key: ItemsToPreloadOptions) {
 		const original = this.#itemsLoaded.get(key);
 		if (original) {
 			const copy = clone(original);
@@ -71,8 +71,10 @@ class PreloadMachine {
 		}
 	}
 
-	get animationsLoaded() {
-		return this.#animationsLoaded;
+	public getLoadedAnimation(key: AnimationsToPreloadOptions) {
+		const animation = this.#animationsLoaded.get(key);
+		if (!animation) return;
+		return animation;
 	}
 
 	public getLoadedModel(key: string) {

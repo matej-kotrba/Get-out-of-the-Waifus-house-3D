@@ -26,6 +26,7 @@
 	import Loading from '$lib/components/game/ingame-ui/loading.svelte';
 	import preloadMachine from '$lib/game/general/PreloadMachine.svelte';
 	import player from '$lib/game/characters/player/Player.svelte';
+	import worldObjects from '$lib/game/general/WorldObjectsMachine';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -73,6 +74,17 @@
 			} else {
 				throw new Error('Bot model not loaded');
 			}
+
+			worldObjects.addGroundItem(
+				newItemFactory.createGroundItem(
+					getMacheteItem(),
+					new THREE.Vector3(7.6, 1, 3.2)
+				),
+				newItemFactory.createGroundItem(
+					getMacheteItem(),
+					new THREE.Vector3(0, 1, 2)
+				)
+			);
 		});
 
 		// loader.load(

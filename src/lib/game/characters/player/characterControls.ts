@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import type { KeypressListenerKeys } from '$lib/game/general/ListenerMachine';
-import preloadMachine from '$lib/game/general/PreloadMachine.svelte';
+import preloadMachine, {
+	type AnimationsToPreloadOptions
+} from '$lib/game/general/PreloadMachine.svelte';
 
 const DIRECTIONS = {
 	forward: 'w',
@@ -9,7 +11,7 @@ const DIRECTIONS = {
 	right: 'd'
 } as const;
 
-const allowedAnimations = [
+const allowedAnimations: AnimationsToPreloadOptions[] = [
 	'idle',
 	'run',
 	'walk',
@@ -50,7 +52,17 @@ export class CharacterControls {
 		this.model = model;
 		this.animationsMap = new Map();
 		this.mixer = new THREE.AnimationMixer(model);
-		preloadMachine.animationsLoaded.forEach((clip, action) => {
+
+		const animations = allowedAnimations
+			.map((animation) => [
+				preloadMachine.getLoadedAnimation(animation),
+				animation
+			])
+			.filter((animation) => animation[1] !== undefined) as [
+			THREE.AnimationClip,
+			AnimationsToPreloadOptions
+		][];
+		animations.forEach(([clip, action]) => {
 			if (!allowedAnimations.includes(action)) return;
 			this.animationsMap.set(action, this.mixer.clipAction(clip));
 		});
@@ -106,6 +118,8 @@ export class CharacterControls {
 			this.updateCameraTarget(moveX, moveZ);
 		}
 	}
+
+	private isAbleToInteractWithGroundItem() {}
 
 	private isMobilityAction(action: CharacterAction) {
 		return action === 'run' || action === 'walk' || action === 'walkWithItem';
