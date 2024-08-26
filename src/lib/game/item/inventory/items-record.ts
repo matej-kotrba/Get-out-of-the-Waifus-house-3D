@@ -1,4 +1,4 @@
-import type { ItemsToPreloadOptions } from '$lib/game/general/PreloadService.svelte';
+import { itemsToPreload } from '$lib/game/general/PreloadService.svelte';
 
 type InventoryItem = {
 	displayName: string;
@@ -6,9 +6,10 @@ type InventoryItem = {
 	description?: string;
 };
 
-export type InventoryKeys = 'fist' | ItemsToPreloadOptions;
+export const InventoryKeys = ['fist', ...itemsToPreload];
+export type InventoryKeysType = (typeof InventoryKeys)[number];
 
-type InventoryItemsRecord = Record<InventoryKeys, InventoryItem>;
+type InventoryItemsRecord = Record<InventoryKeysType, InventoryItem>;
 
 export const inventoryItemsRecord: InventoryItemsRecord = {
 	fist: {

@@ -8,15 +8,15 @@ import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 export type PreloadedParts = 'items' | 'animations' | 'models' | 'hdris';
 
-const itemsToPreload: ItemTypeMethodsRecordType[] = ['machete'] as const;
-const animationsToPreload = [
+export const itemsToPreload: ItemTypeMethodsRecordType[] = ['machete'] as const;
+export const animationsToPreload = [
 	'idle',
 	'walk',
 	'walkWithItem',
 	'run',
 	'meleeAttack'
 ] as const;
-const hdrisToPreload = ['forest'] as const;
+export const hdrisToPreload = ['forest'] as const;
 
 export type ItemsToPreloadOptions = (typeof itemsToPreload)[number];
 export type AnimationsToPreloadOptions = (typeof animationsToPreload)[number];

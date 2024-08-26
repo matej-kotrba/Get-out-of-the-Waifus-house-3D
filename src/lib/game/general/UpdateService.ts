@@ -28,6 +28,10 @@ class UpdateService {
 		this.flag = false;
 	}
 
+	public isGameRunning() {
+		return this.flag;
+	}
+
 	private update() {
 		if (!this.flag) return;
 		const delta = this.clock.getDelta();

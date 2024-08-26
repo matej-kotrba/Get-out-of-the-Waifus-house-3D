@@ -2,9 +2,13 @@ import Inventory from '$lib/game/inventory/Inventory.svelte';
 import { CharacterControls } from './characterControls';
 import { initialize } from '$lib/three/setup.svelte';
 import preloadMachine from '$lib/game/general/PreloadService.svelte';
+import * as THREE from 'three';
+
+type Joints = 'leftHandPalm' | 'rightHandPalm';
 
 class Player {
 	isInitialized: boolean = false;
+	joints: Map<Joints, THREE.Object3D<THREE.Object3DEventMap>> = new Map();
 
 	// Player stats
 	hp: number;
@@ -25,6 +29,7 @@ class Player {
 		if (!model) {
 			throw new Error('Player model not loaded');
 		}
+		this.initializeModelsPartsOfBody(model);
 		this.inventory = new Inventory();
 		this.characterControls = new CharacterControls(
 			model,
@@ -32,6 +37,20 @@ class Player {
 			camera,
 			'idle'
 		);
+	}
+
+	private initializeModelsPartsOfBody(
+		model: THREE.Object3D<THREE.Object3DEventMap>
+	) {
+		const leftHandPalm = model.getObjectByName('mixamorigLeftHandIndex1');
+		const rightHandPalm = model.getObjectByName('mixamorigRightHandIndex1');
+
+		if (!leftHandPalm || !rightHandPalm) {
+			throw new Error('Player model parts not found');
+		}
+
+		this.joints.set('leftHandPalm', leftHandPalm);
+		this.joints.set('rightHandPalm', rightHandPalm);
 	}
 }
 

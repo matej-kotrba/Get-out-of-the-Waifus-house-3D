@@ -5,6 +5,10 @@ import preloadMachine, {
 } from '$lib/game/general/PreloadService.svelte';
 import worldObjects from '$lib/game/general/WorldObjects';
 import tooltipService from '$lib/game/general/TooltipService';
+import player from './Player.svelte';
+import { inventoryItemsRecord } from '$lib/game/item/inventory/items-record';
+import listenerService2 from '$lib/game/general/ListenerService2';
+import listenerMachine from '$lib/game/general/ListenerService';
 
 const DIRECTIONS = {
 	forward: 'w',
@@ -45,6 +49,9 @@ export class CharacterControls {
 	runVelocity = 5;
 	walkVelocity = 2;
 
+	// Current item in hand
+	itemInHand: THREE.Object3D | undefined = undefined;
+
 	constructor(
 		model: THREE.Object3D,
 		orbit: THREE.Object3D,
@@ -78,6 +85,26 @@ export class CharacterControls {
 			}
 		});
 		this.camera = camera;
+
+		const minMaxZoom = [0.5, 0.8];
+		listenerService2.subscribe('wheel', (event) => {
+			console.log('asd');
+			const retyped = event as WheelEvent;
+			if (listenerMachine.keys[';']) {
+				let newScale = orbit.scale.x + retyped.deltaY * 0.001;
+				if (newScale < minMaxZoom[0]) {
+					newScale = minMaxZoom[0];
+				} else if (newScale > minMaxZoom[1]) {
+					newScale = minMaxZoom[1];
+				}
+				orbit.scale.setScalar(newScale);
+			} else {
+				if (player.inventory) {
+					player.inventory.selectedSlot += retyped.deltaY > 0 ? 1 : -1;
+					this.renderItemInHandOnMouseScroll();
+				}
+			}
+		});
 	}
 
 	public update(delta: number, keys: KeypressListenerKeys) {
@@ -126,6 +153,14 @@ export class CharacterControls {
 			this.model.position.z += moveZ;
 			this.updateCameraTarget(moveX, moveZ);
 		}
+	}
+
+	private renderItemInHandOnMouseScroll() {
+		const item = player.inventory?.selectedItem;
+		if (!item?.id) return;
+		const record = inventoryItemsRecord[item.id];
+		const model = preloadMachine.getLoadedItem(item.id);
+		if (!model || !record) return;
 	}
 
 	private isAbleToInteractWithGroundItem() {

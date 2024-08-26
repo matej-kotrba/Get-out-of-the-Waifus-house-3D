@@ -104,27 +104,27 @@ export function initializeCameraUpdation(orbit: THREE.Object3D) {
 
 	const mousewheelAbortController = new AbortController();
 
-	const minMaxZoom = [0.5, 0.8];
+	// const minMaxZoom = [0.5, 0.8];
 	orbit.scale.setScalar(0.8);
-	window.addEventListener(
-		'wheel',
-		(event) => {
-			if (listenerMachine.keys[';']) {
-				let newScale = orbit.scale.x + event.deltaY * 0.001;
-				if (newScale < minMaxZoom[0]) {
-					newScale = minMaxZoom[0];
-				} else if (newScale > minMaxZoom[1]) {
-					newScale = minMaxZoom[1];
-				}
-				orbit.scale.setScalar(newScale);
-			} else {
-				if (player.inventory) {
-					player.inventory.selectedSlot += event.deltaY > 0 ? 1 : -1;
-				}
-			}
-		},
-		{ signal: mousewheelAbortController.signal }
-	);
+	// window.addEventListener(
+	// 	'wheel',
+	// 	(event) => {
+	// 		if (listenerMachine.keys[';']) {
+	// 			let newScale = orbit.scale.x + event.deltaY * 0.001;
+	// 			if (newScale < minMaxZoom[0]) {
+	// 				newScale = minMaxZoom[0];
+	// 			} else if (newScale > minMaxZoom[1]) {
+	// 				newScale = minMaxZoom[1];
+	// 			}
+	// 			orbit.scale.setScalar(newScale);
+	// 		} else {
+	// 			if (player.inventory) {
+	// 				player.inventory.selectedSlot += event.deltaY > 0 ? 1 : -1;
+	// 			}
+	// 		}
+	// 	},
+	// 	{ signal: mousewheelAbortController.signal }
+	// );
 
 	return {
 		destroy() {

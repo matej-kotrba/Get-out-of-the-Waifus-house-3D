@@ -1,9 +1,9 @@
-import type { InventoryKeys } from '../item/inventory/items-record';
+import type { InventoryKeysType } from '../item/inventory/items-record';
 
 const INVENTORY_SIZE = 5;
 
 type InventoryItem = {
-	id?: InventoryKeys;
+	id?: InventoryKeysType;
 	slotId: number;
 };
 
@@ -20,7 +20,7 @@ export default class Inventory {
 			) => {
 				// console.log('Setting', prop, 'to', value, 'with target', target);
 				if (prop === 'id') {
-					target['id'] = value as InventoryKeys;
+					target['id'] = value as InventoryKeysType;
 				}
 
 				return true;
@@ -47,5 +47,9 @@ export default class Inventory {
 		} else {
 			this.#selectedSlot = index;
 		}
+	}
+
+	public get selectedItem(): InventoryItem {
+		return this.items[this.selectedSlot];
 	}
 }
