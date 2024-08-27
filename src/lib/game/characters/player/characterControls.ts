@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import type { KeypressListenerKeys } from '$lib/game/general/ListenerService';
 import preloadMachine, {
 	type AnimationsToPreloadOptions
 } from '$lib/game/general/PreloadService.svelte';
@@ -10,8 +9,9 @@ import {
 	EMPTY_HAND,
 	inventoryItemsRecord
 } from '$lib/game/item/inventory/items-record';
-import listenerService2 from '$lib/game/general/ListenerService2';
-import listenerMachine from '$lib/game/general/ListenerService';
+import listenerService, {
+	type KeypressListenerKeys
+} from '$lib/game/general/ListenerService';
 import { DIRECTIONS, INTERACTION } from '$lib/game/constants/controls';
 
 const allowedAnimations: AnimationsToPreloadOptions[] = [
@@ -84,10 +84,10 @@ export class CharacterControls {
 		this.camera = camera;
 
 		const minMaxZoom = [0.5, 0.8];
-		listenerService2.subscribe('wheel', (event) => {
+		listenerService.subscribe('wheel', (event) => {
 			console.log('asd');
 			const retyped = event as WheelEvent;
-			if (listenerMachine.keys[';']) {
+			if (listenerService.keys[';']) {
 				let newScale = orbit.scale.x + retyped.deltaY * 0.001;
 				if (newScale < minMaxZoom[0]) {
 					newScale = minMaxZoom[0];
@@ -103,7 +103,7 @@ export class CharacterControls {
 			}
 		});
 
-		listenerService2.subscribe('keypress', (event) => {
+		listenerService.subscribe('keypress', (event) => {
 			const retypedEvent = event as KeyboardEvent;
 			if (retypedEvent.key.toLowerCase() === INTERACTION) {
 				const groundItem = this.getClosestGroundItem();

@@ -176,7 +176,6 @@
 		updateService.start();
 
 		return () => {
-			listenerMachine.destroy();
 			cameraOnMouseMoveRotationDestroy();
 		};
 	});
