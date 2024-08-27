@@ -19,7 +19,8 @@ const allowedAnimations: AnimationsToPreloadOptions[] = [
 	'run',
 	'walk',
 	'meleeAttack',
-	'walkWithItem'
+	'walkWithItem',
+	'equipStand'
 ] as const;
 
 export type CharacterAction = (typeof allowedAnimations)[number];

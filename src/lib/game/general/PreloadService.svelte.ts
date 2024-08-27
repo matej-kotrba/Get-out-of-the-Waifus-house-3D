@@ -14,7 +14,8 @@ export const animationsToPreload = [
 	'walk',
 	'walkWithItem',
 	'run',
-	'meleeAttack'
+	'meleeAttack',
+	'equipStand'
 ] as const;
 export const hdrisToPreload = ['forest'] as const;
 
