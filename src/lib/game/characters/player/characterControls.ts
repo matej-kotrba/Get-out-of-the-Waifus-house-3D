@@ -6,11 +6,13 @@ import preloadMachine, {
 import worldObjects from '$lib/game/general/WorldObjects';
 import tooltipService from '$lib/game/general/TooltipService';
 import player from './Player.svelte';
-import { inventoryItemsRecord } from '$lib/game/item/inventory/items-record';
+import {
+	EMPTY_HAND,
+	inventoryItemsRecord
+} from '$lib/game/item/inventory/items-record';
 import listenerService2 from '$lib/game/general/ListenerService2';
 import listenerMachine from '$lib/game/general/ListenerService';
 import { DIRECTIONS, INTERACTION } from '$lib/game/constants/controls';
-import playerVarsMachine from '$lib/game/general/PlayerVarsService';
 
 const allowedAnimations: AnimationsToPreloadOptions[] = [
 	'idle',
@@ -96,14 +98,14 @@ export class CharacterControls {
 			} else {
 				if (player.inventory) {
 					player.inventory.selectedSlot += retyped.deltaY > 0 ? 1 : -1;
-					this.renderItemInHandOnMouseScroll();
+					this.initializeItemInHandToRender();
 				}
 			}
 		});
 
 		listenerService2.subscribe('keypress', (event) => {
 			const retypedEvent = event as KeyboardEvent;
-			if (retypedEvent.key === INTERACTION) {
+			if (retypedEvent.key.toLowerCase() === INTERACTION) {
 				const groundItem = this.getClosestGroundItem();
 				if (groundItem) {
 					groundItem.onPickup();
@@ -160,12 +162,29 @@ export class CharacterControls {
 		}
 	}
 
-	private renderItemInHandOnMouseScroll() {
+	private initializeItemInHandToRender() {
+		const playerRightHand = player.joints.get('rightHandPalm');
+		if (this.itemInHand && playerRightHand) {
+			playerRightHand.remove(this.itemInHand);
+		}
+
 		const item = player.inventory?.selectedItem;
-		if (!item?.id) return;
+		if (!item?.id || item.id === EMPTY_HAND) return;
 		const record = inventoryItemsRecord[item.id];
 		const model = preloadMachine.getLoadedItem(item.id);
 		if (!model || !record) return;
+
+		playerRightHand?.add(model);
+
+		this.itemInHand = model;
+		model.scale.setScalar(1);
+
+		model.position.x += 7.6;
+		model.position.z += 3.2;
+
+		model.rotation.x = -1.2;
+		model.rotation.y = 0;
+		model.rotation.z = -1.6;
 	}
 
 	private isAbleToInteractWithGroundItem() {

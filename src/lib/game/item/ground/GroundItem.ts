@@ -4,6 +4,7 @@ import updateService from '$lib/game/general/UpdateService';
 import * as THREE from 'three';
 import { getMacheteItem } from './items/Machete';
 import player from '$lib/game/characters/player/Player.svelte';
+import worldObjects from '$lib/game/general/WorldObjects';
 
 export const itemTypeMethodsRecord = {
 	machete: getMacheteItem()
@@ -55,7 +56,15 @@ export class GroundItem {
 	}
 
 	public onPickup() {
-		player.inventory?.addItemToInventory(this.type);
+		if (player.inventory?.addItemToInventory(this.type)) {
+			this.destroy();
+		}
+	}
+
+	public destroy() {
+		worldObjects.removeGroundItem(this);
+		this.model.removeFromParent();
+		this.rays.removeFromParent();
 	}
 
 	public addToScene(scene: THREE.Scene) {

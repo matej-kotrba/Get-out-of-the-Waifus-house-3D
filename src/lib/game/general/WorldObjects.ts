@@ -14,6 +14,14 @@ class WorldObjects {
 			groundItem.addToScene(scene);
 		}
 	}
+
+	public removeGroundItem(groundItem: GroundItem) {
+		const index = this.groundItems.indexOf(groundItem);
+		if (index === -1) {
+			return;
+		}
+		this.groundItems.splice(index, 1);
+	}
 }
 
 const worldObjects = new WorldObjects();

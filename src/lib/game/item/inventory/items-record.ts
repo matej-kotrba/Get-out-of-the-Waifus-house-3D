@@ -8,7 +8,7 @@ type InventoryItem = {
 
 export const EMPTY_HAND = 'fist';
 
-export const InventoryKeys = [EMPTY_HAND, ...itemsToPreload];
+export const InventoryKeys = [EMPTY_HAND, ...itemsToPreload] as const;
 export type InventoryKeysType = (typeof InventoryKeys)[number];
 
 type InventoryItemsRecord = Record<InventoryKeysType, InventoryItem>;
