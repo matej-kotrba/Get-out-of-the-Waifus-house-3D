@@ -1,38 +1,20 @@
-# create-svelte
+# ⚠️⚠️ Work in progress ⚠️⚠️
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+### Description
+Get out of the waifus house is meme RPG horror 3rd person action game based in whatever place came into my mind
 
-## Creating a project
+### Main focus
+Trying to build proper game using code which would stand the test of time (impossible btw), also entertaining game with some cool features is a way to go
 
-If you're seeing this, you've probably already done this step. Congrats!
+### Technologies
+For someone who actually cares, it's kinda boring anyway: SvelteKit, TypeScript, Three.js, Rapier
 
+### How to play?
+Well hosting is out of question because bandwith would happend to be over the roof, local only. Currently you have to clone the project and run
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+pnpm install (recommended) OR npm install OR whatever other package manager it should work
 ```
+Later on I plan to create desktop version out of it.
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+### CONTRIBUTE???
+If someone is that crazy to try look into that spaghetti code you are welcome to fork the repo and create PR 🦭
