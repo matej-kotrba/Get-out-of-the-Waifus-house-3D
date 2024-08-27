@@ -6,13 +6,15 @@ type InventoryItem = {
 	description?: string;
 };
 
-export const InventoryKeys = ['fist', ...itemsToPreload];
+export const EMPTY_HAND = 'fist';
+
+export const InventoryKeys = [EMPTY_HAND, ...itemsToPreload];
 export type InventoryKeysType = (typeof InventoryKeys)[number];
 
 type InventoryItemsRecord = Record<InventoryKeysType, InventoryItem>;
 
 export const inventoryItemsRecord: InventoryItemsRecord = {
-	fist: {
+	[EMPTY_HAND]: {
 		displayName: 'Fist',
 		image: '/models/images/inventory/fist.png'
 	},

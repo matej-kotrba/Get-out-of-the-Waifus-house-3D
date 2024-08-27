@@ -3,6 +3,7 @@ import type { ItemsToPreloadOptions } from '$lib/game/general/PreloadService.sve
 import updateService from '$lib/game/general/UpdateService';
 import * as THREE from 'three';
 import { getMacheteItem } from './items/Machete';
+import player from '$lib/game/characters/player/Player.svelte';
 
 export const itemTypeMethodsRecord = {
 	machete: getMacheteItem()
@@ -16,8 +17,6 @@ export type GroundItemTemplate = {
 		loadingManager: THREE.LoadingManager,
 		onLoad?: (model: THREE.Group<THREE.Object3DEventMap>) => void
 	): void;
-	onPickup(): void;
-	destroy(): void;
 };
 
 export type GroundItemRestProps = {
@@ -27,8 +26,6 @@ export type GroundItemRestProps = {
 
 export class GroundItem {
 	public type: GroundItemTemplate['type'];
-	public onPickup: GroundItemTemplate['onPickup'];
-	public destroy: GroundItemTemplate['destroy'];
 
 	public model: GroundItemRestProps['model'];
 	public rays: THREE.Group<THREE.Object3DEventMap>;
@@ -39,8 +36,6 @@ export class GroundItem {
 		restProps: GroundItemRestProps
 	) {
 		this.type = groundItem.type;
-		this.onPickup = groundItem.onPickup;
-		this.destroy = groundItem.destroy;
 
 		this.model = restProps.model;
 
@@ -57,6 +52,10 @@ export class GroundItem {
 		this.initialPosition = restProps.initialPosition;
 
 		this.model.position.copy(this.initialPosition);
+	}
+
+	public onPickup() {
+		player.inventory?.addItemToInventory(this.type);
 	}
 
 	public addToScene(scene: THREE.Scene) {

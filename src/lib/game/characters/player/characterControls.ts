@@ -9,13 +9,7 @@ import player from './Player.svelte';
 import { inventoryItemsRecord } from '$lib/game/item/inventory/items-record';
 import listenerService2 from '$lib/game/general/ListenerService2';
 import listenerMachine from '$lib/game/general/ListenerService';
-
-const DIRECTIONS = {
-	forward: 'w',
-	left: 'a',
-	backward: 's',
-	right: 'd'
-} as const;
+import { DIRECTIONS, INTERACTION } from '$lib/game/constants/controls';
 
 const allowedAnimations: AnimationsToPreloadOptions[] = [
 	'idle',
@@ -102,6 +96,16 @@ export class CharacterControls {
 				if (player.inventory) {
 					player.inventory.selectedSlot += retyped.deltaY > 0 ? 1 : -1;
 					this.renderItemInHandOnMouseScroll();
+				}
+			}
+		});
+
+		listenerService2.subscribe('keypress', (event) => {
+			const retypedEvent = event as KeyboardEvent;
+			if (retypedEvent.key === INTERACTION) {
+				const groundItem = this.getClosestGroundItem();
+				if (groundItem) {
+					groundItem.onPickup();
 				}
 			}
 		});

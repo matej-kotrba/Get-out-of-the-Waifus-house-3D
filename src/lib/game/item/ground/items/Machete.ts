@@ -18,9 +18,7 @@ export function getMacheteItem(): GroundItemTemplate {
 				},
 				loadingManager
 			});
-		},
-		onPickup(): void {},
-		destroy(): void {}
+		}
 	};
 }
 
