@@ -12,7 +12,7 @@ type InventoryItem = {
 };
 
 export default class Inventory {
-	items: InventoryItem[] = [];
+	items: InventoryItem[] = $state([]);
 	#selectedSlot: number = $state(0);
 
 	constructor() {
