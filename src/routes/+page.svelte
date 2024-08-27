@@ -67,14 +67,15 @@
 				scene.environment = hdri;
 			}
 
-			const bot = preloadMachine.getLoadedModel('bot');
-			if (bot) {
-				charactersControls = new CharacterControls(bot, orbit, camera, 'idle');
-				playerVarsMachine.setup(bot, camera);
-				scene.add(bot);
-			} else {
-				throw new Error('Bot model not loaded');
-			}
+			// const bot = preloadMachine.getLoadedModel('bot');
+			// if (bot) {
+			// 	// REMOVE THIS, TAKE THE LOGIC FROM PLAYER.TS
+			// 	charactersControls = new CharacterControls(bot, orbit, camera, 'idle');
+			// 	playerVarsMachine.setup(bot, camera);
+			// 	scene.add(bot);
+			// } else {
+			// 	throw new Error('Bot model not loaded');
+			// }
 
 			worldObjects.addGroundItem(
 				newItemFactory.createGroundItem(
@@ -168,7 +169,7 @@
 		// };
 
 		updateService.subscribe((delta) => {
-			charactersControls?.update(delta, listenerMachine.keys);
+			player.characterControls?.update(delta, listenerMachine.keys);
 			renderer.render(scene, camera);
 			cssRenderer.render(scene, camera);
 		});

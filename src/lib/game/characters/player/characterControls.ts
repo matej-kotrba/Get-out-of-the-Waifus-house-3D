@@ -10,6 +10,7 @@ import { inventoryItemsRecord } from '$lib/game/item/inventory/items-record';
 import listenerService2 from '$lib/game/general/ListenerService2';
 import listenerMachine from '$lib/game/general/ListenerService';
 import { DIRECTIONS, INTERACTION } from '$lib/game/constants/controls';
+import playerVarsMachine from '$lib/game/general/PlayerVarsService';
 
 const allowedAnimations: AnimationsToPreloadOptions[] = [
 	'idle',

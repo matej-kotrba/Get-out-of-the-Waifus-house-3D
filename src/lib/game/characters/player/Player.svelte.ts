@@ -3,6 +3,7 @@ import { CharacterControls } from './characterControls';
 import { initialize } from '$lib/three/setup.svelte';
 import preloadMachine from '$lib/game/general/PreloadService.svelte';
 import * as THREE from 'three';
+import playerVarsMachine from '$lib/game/general/PlayerVarsService';
 
 type Joints = 'leftHandPalm' | 'rightHandPalm';
 
@@ -17,26 +18,32 @@ class Player {
 	// Player linked data
 	inventory: Inventory | undefined = $state(undefined);
 	characterControls: CharacterControls | undefined;
+	model: THREE.Object3D<THREE.Object3DEventMap> | undefined;
 
 	constructor() {
 		this.hp = 1000;
 		this.maxHp = 1000;
 	}
 
-	public async initialize() {
-		const { orbit, camera } = initialize.getProperties();
+	public initialize() {
+		const { orbit, camera, scene } = initialize.getProperties();
 		const model = preloadMachine.getLoadedModel('bot');
 		if (!model) {
 			throw new Error('Player model not loaded');
 		}
+
 		this.initializeModelsPartsOfBody(model);
 		this.inventory = new Inventory();
+		playerVarsMachine.setup(model, camera);
 		this.characterControls = new CharacterControls(
 			model,
 			orbit,
 			camera,
 			'idle'
 		);
+
+		this.model = model;
+		scene.add(model);
 	}
 
 	private initializeModelsPartsOfBody(
