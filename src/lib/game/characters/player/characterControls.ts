@@ -85,7 +85,6 @@ export class CharacterControls {
 
 		const minMaxZoom = [0.5, 0.8];
 		listenerService.subscribe('wheel', (event) => {
-			console.log('asd');
 			const retyped = event as WheelEvent;
 			if (listenerService.keys[';']) {
 				let newScale = orbit.scale.x + retyped.deltaY * 0.001;
@@ -109,6 +108,7 @@ export class CharacterControls {
 				const groundItem = this.getClosestGroundItem();
 				if (groundItem) {
 					groundItem.onPickup();
+					this.initializeItemInHandToRender();
 				}
 			}
 		});
