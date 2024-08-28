@@ -1,7 +1,7 @@
 <script lang="ts">
 	import LandingAnimation from '$lib/components/main-menu/landing-animation.svelte';
 	import Menu from '$lib/components/main-menu/menu.svelte';
-	import Inventory from '$lib/components/game/ingame-ui/inventory.svelte';
+	import SmallInventory from '$lib/components/game/ingame-ui/small-inventory.svelte';
 	import {
 		CharacterControls,
 		type CharacterAction,
@@ -26,6 +26,7 @@
 	import preloadMachine from '$lib/game/general/PreloadService.svelte';
 	import player from '$lib/game/characters/player/Player.svelte';
 	import worldObjects from '$lib/game/general/WorldObjects';
+	import BigInventory from '$lib/components/game/ingame-ui/big-inventory.svelte';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -191,7 +192,8 @@
 
 <Loading />
 <div class="fixed left-0 top-0 h-screen w-screen">
-	<Inventory />
+	<SmallInventory />
+	<BigInventory />
 	<canvas class="h-screen w-screen" bind:this={canvas}></canvas>
 </div>
 
