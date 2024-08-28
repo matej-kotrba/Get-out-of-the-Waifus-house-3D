@@ -29,6 +29,14 @@ export type CharacterAnimationsMap = Map<
 	THREE.AnimationAction
 >;
 
+type BlockingAnimation = {
+	type: CharacterAction;
+	action: THREE.AnimationAction;
+	options?: {
+		reversed: boolean;
+	};
+};
+
 export class CharacterControls {
 	model: THREE.Object3D;
 	mixer: THREE.AnimationMixer;
@@ -36,6 +44,7 @@ export class CharacterControls {
 	orbit: THREE.Object3D;
 	camera: THREE.Camera;
 
+	blockingAnimationsQueue: BlockingAnimation[] = [];
 	currentAction: CharacterAction;
 
 	walkDirection = new THREE.Vector3();
@@ -133,9 +142,17 @@ export class CharacterControls {
 		} else if (directionPressed && keys['shift']) {
 			play = 'run';
 		} else if (directionPressed) {
-			play = 'walk';
+			if (this.itemInHand) {
+				play = 'walkWithItem';
+			} else {
+				play = 'walk';
+			}
 		} else {
 			play = 'idle';
+		}
+
+		if (this.blockingAnimationsQueue.length > 0) {
+			play = this.blockingAnimationsQueue[0].type;
 		}
 
 		if (this.currentAction !== play) {
@@ -149,6 +166,13 @@ export class CharacterControls {
 		}
 
 		this.mixer.update(delta);
+
+		if (
+			this.blockingAnimationsQueue[0] &&
+			this.isBlockingAnimationFinished(this.blockingAnimationsQueue[0])
+		) {
+			this.firstOutBlockingAnimation();
+		}
 
 		if (this.isMobilityAction(this.currentAction)) {
 			this.updateCharacterRotation(keys, delta);
@@ -170,12 +194,17 @@ export class CharacterControls {
 		}
 
 		const item = player.inventory?.selectedItem;
-		if (!item?.id || item.id === EMPTY_HAND) return;
+		if (!item?.id || item.id === EMPTY_HAND) {
+			this.itemInHand = undefined;
+			this.addBlockingAnimation('equipStand', { reversed: true });
+			return;
+		}
 		const record = inventoryItemsRecord[item.id];
 		const model = preloadMachine.getLoadedItem(item.id);
 		if (!model || !record) return;
 
 		playerRightHand?.add(model);
+		this.addBlockingAnimation('equipStand');
 
 		this.itemInHand = model;
 		model.scale.setScalar(1);
@@ -186,6 +215,45 @@ export class CharacterControls {
 		model.rotation.x = -1.2;
 		model.rotation.y = 0;
 		model.rotation.z = -1.6;
+	}
+
+	private addBlockingAnimation(
+		action: CharacterAction,
+		options?: { reversed: boolean }
+	) {
+		const animation = this.animationsMap.get(action);
+		// THIS MAY CHANGE
+		this.blockingAnimationsQueue = this.blockingAnimationsQueue.filter(
+			(anim) => anim.type !== action
+		);
+		//
+		if (!animation) return;
+		animation.reset();
+		animation.clampWhenFinished = true;
+		animation.timeScale = options?.reversed ? -1 : 1;
+		animation.repetitions = 1;
+		this.blockingAnimationsQueue.push({
+			action: animation,
+			type: action,
+			options: { reversed: options?.reversed ?? false }
+		});
+	}
+
+	private isBlockingAnimationFinished(animation: BlockingAnimation) {
+		if (animation.options?.reversed) {
+			return animation.action.time <= 0;
+		}
+
+		return (
+			animation.action.time > 0 &&
+			animation.action.time >= animation.action.getClip().duration
+		);
+	}
+
+	private firstOutBlockingAnimation() {
+		if (this.blockingAnimationsQueue.length > 0) {
+			this.blockingAnimationsQueue.shift();
+		}
 	}
 
 	private isAbleToInteractWithGroundItem() {

@@ -75,7 +75,7 @@ class PreloadService {
 	public getLoadedAnimation(key: AnimationsToPreloadOptions) {
 		const animation = this.#animationsLoaded.get(key);
 		if (!animation) return;
-		return animation;
+		return animation.clone();
 	}
 
 	public getLoadedModel(key: string) {
