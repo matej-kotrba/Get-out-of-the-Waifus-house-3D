@@ -3,7 +3,6 @@ import { CharacterControls } from './characterControls';
 import { initialize } from '$lib/three/setup.svelte';
 import preloadMachine from '$lib/game/general/PreloadService.svelte';
 import * as THREE from 'three';
-import playerVarsMachine from '$lib/game/general/PlayerVarsService';
 
 type Joints = 'leftHandPalm' | 'rightHandPalm';
 
@@ -34,7 +33,6 @@ class Player {
 
 		this.initializeModelsPartsOfBody(model);
 		this.inventory = new Inventory();
-		playerVarsMachine.setup(model, camera);
 		this.characterControls = new CharacterControls(
 			model,
 			orbit,
@@ -44,6 +42,10 @@ class Player {
 
 		this.model = model;
 		scene.add(model);
+	}
+
+	public getPlayerModelPosition() {
+		return this.model?.position;
 	}
 
 	private initializeModelsPartsOfBody(

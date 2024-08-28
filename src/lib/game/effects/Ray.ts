@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GROUND_ITEM_HIGHLIGHT } from '../constants/colors';
-import playerVarsMachine from '../general/PlayerVarsService';
+import { initialize } from '$lib/three/setup.svelte';
 
 export type Area = 'point' | 'rect';
 
@@ -75,9 +75,14 @@ class RayFactory {
 	}
 
 	public rayAnimateEffect(rays: LightRay[], delta: number, time: number) {
-		const distanceFromPlayer = playerVarsMachine
-			.playerModelPosition()
+		const { camera } = initialize.getProperties();
+
+		const distanceFromPlayer = camera
+			.getWorldPosition(new THREE.Vector3())
 			.distanceTo(rays[0].position);
+
+		if (!distanceFromPlayer) return;
+
 		rays.forEach((ray) => {
 			if (distanceFromPlayer > 15) {
 				ray.material.uniforms.alpha = { value: 0.0 };

@@ -21,7 +21,6 @@
 	import loadMachine from '$lib/game/general/LoadService';
 	import newItemFactory from '$lib/game/item/NewItemFactory';
 	import { getMacheteItem } from '$lib/game/item/ground/items/Machete';
-	import playerVarsMachine from '$lib/game/general/PlayerVarsService';
 	import listenerMachine from '$lib/game/general/ListenerService';
 	import Loading from '$lib/components/game/ingame-ui/loading.svelte';
 	import preloadMachine from '$lib/game/general/PreloadService.svelte';
