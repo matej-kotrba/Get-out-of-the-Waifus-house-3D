@@ -1,28 +1,35 @@
 <script lang="ts">
-	import type { Options } from '@sveltejs/vite-plugin-svelte';
-	import { dndzone, SHADOW_ITEM_MARKER_PROPERTY_NAME } from 'svelte-dnd-action';
+	import {
+		dndzone,
+		SHADOW_ITEM_MARKER_PROPERTY_NAME,
+		type Options
+	} from 'svelte-dnd-action';
 
 	const FLIP_DURATION = 200;
 
-	let itemsInInventory = $state([]);
+	let items = $state([]);
 
-	let optionsInventory = $derived({
-		items: itemsInInventory,
+	let options = $derived({
+		items,
 		flipDurationMs: FLIP_DURATION,
-		dropFromOthersDisabled: true
+		dropFromOthersDisabled: items.length
 	}) as Options;
 
 	function handleDnd(e: any) {
-		itemsInInventory = e.detail.items;
+		items = e.detail.items;
 	}
 </script>
 
 <div
-	use:dndzone={optionsInventory}
-	onconsider={handleDnd}
-	onfinalize={handleDnd}
-	style={itemsInInventory.find((tile) => tile[SHADOW_ITEM_MARKER_PROPERTY_NAME])
+	style={items.find((tile) => tile[SHADOW_ITEM_MARKER_PROPERTY_NAME])
 		? 'background: rgba(255, 255, 255, 0.2)'
 		: ''}
+	use:dndzone={options}
+	onconsider={handleDnd}
+	onfinalize={handleDnd}
 	class="aspect-square rounded-lg bg-pink-500"
-></div>
+>
+	{#each items as tile (tile.id)}
+		{tile.letter}
+	{/each}
+</div>

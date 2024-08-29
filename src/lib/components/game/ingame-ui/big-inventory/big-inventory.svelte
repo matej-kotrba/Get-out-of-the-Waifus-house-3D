@@ -6,31 +6,38 @@
 </script>
 
 <script lang="ts">
-	import {
-		dndzone,
-		SHADOW_ITEM_MARKER_PROPERTY_NAME,
-		type Options
-	} from 'svelte-dnd-action';
+	import { dndzone, type Options } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
+	import Slot from './Slot.svelte';
 
 	const INVENTORY_SPACE = 50;
 	const FLIP_DURATION = 200;
 
-	let itemsOnGround: Item[] = $state([
-		{ id: 1, name: 'lol' },
-		{ id: 2, name: 'lol2' },
-		{ id: 3, name: 'lol3' }
+	let idx = 0;
+
+	let items = $state([
+		{ id: idx++, letter: 'A' },
+		{ id: idx++, letter: 'B' },
+		{ id: idx++, letter: 'C' },
+		{ id: idx++, letter: 'D' },
+		{ id: idx++, letter: 'E' },
+		{ id: idx++, letter: 'F' },
+		{ id: idx++, letter: 'G' }
 	]);
 
-	let optionsOnGround = $derived({
-		items: itemsOnGround,
+	let options = $derived({
+		items,
 		flipDurationMs: FLIP_DURATION,
 		morphDisabled: true
-	});
+	}) as Options;
 
 	function handleDnd(e: any) {
-		itemsOnGround = e.detail.items;
+		items = e.detail.items;
 	}
+
+	const boardGrid = Array.from({ length: 15 }, (_, i) =>
+		Array.from({ length: 15 }, (_, j) => ({ id: i * 15 + j }))
+	);
 </script>
 
 <section class="absolute inset-0 bg-[#00000055] p-8">
@@ -38,17 +45,19 @@
 		class="inventory-split h-full w-full rounded-2xl border-8 border-indigo-900 bg-indigo-600"
 	>
 		<div class="inventory-split__tiles p-2">
-			{#each itemsInInventory as space (space.id)}{/each}
+			{#each boardGrid as col}
+				<div class="col">
+					{#each col as square}
+						<Slot />
+					{/each}
+				</div>
+			{/each}
 		</div>
-		<div
-			use:dndzone={optionsOnGround}
-			onconsider={handleDnd}
-			onfinalize={handleDnd}
-		>
-			{#each itemsOnGround as item (item.id)}
+		<div use:dndzone={options} onconsider={handleDnd} onfinalize={handleDnd}>
+			{#each items as item (item.id)}
 				<div animate:flip={{ duration: FLIP_DURATION }}>
 					<div class="border border-white p-6">
-						{item.name}
+						{item.letter}
 					</div>
 				</div>
 			{/each}
