@@ -26,7 +26,7 @@
 	import preloadMachine from '$lib/game/general/PreloadService.svelte';
 	import player from '$lib/game/characters/player/Player.svelte';
 	import worldObjects from '$lib/game/general/WorldObjects';
-	import BigInventory from '$lib/components/game/ingame-ui/big-inventory.svelte';
+	import BigInventory from '$lib/components/game/ingame-ui/big-inventory/big-inventory.svelte';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
