@@ -4,15 +4,17 @@
 		SHADOW_ITEM_MARKER_PROPERTY_NAME,
 		type Options
 	} from 'svelte-dnd-action';
+	import Tile from './Tile.svelte';
+	import type { Item } from './big-inventory.svelte';
 
 	const FLIP_DURATION = 200;
 
-	let items = $state([]);
+	let items = $state<Item[]>([]);
 
 	let options = $derived({
 		items,
 		flipDurationMs: FLIP_DURATION,
-		dropFromOthersDisabled: items.length
+		dropFromOthersDisabled: Boolean(items.length)
 	}) as Options;
 
 	function handleDnd(e: any) {
@@ -29,7 +31,7 @@
 	onfinalize={handleDnd}
 	class="aspect-square rounded-lg bg-pink-500"
 >
-	{#each items as tile (tile.id)}
-		{tile.letter}
+	{#each items as item (item.id)}
+		<Tile {item} />
 	{/each}
 </div>

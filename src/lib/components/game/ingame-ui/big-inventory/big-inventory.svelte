@@ -2,6 +2,7 @@
 	export type Item = {
 		id: number;
 		name: string;
+		isDndShadowItem?: boolean;
 	};
 </script>
 
@@ -15,14 +16,14 @@
 
 	let idx = 0;
 
-	let items = $state([
-		{ id: idx++, letter: 'A' },
-		{ id: idx++, letter: 'B' },
-		{ id: idx++, letter: 'C' },
-		{ id: idx++, letter: 'D' },
-		{ id: idx++, letter: 'E' },
-		{ id: idx++, letter: 'F' },
-		{ id: idx++, letter: 'G' }
+	let items = $state<Item[]>([
+		{ id: idx++, name: 'A' },
+		{ id: idx++, name: 'B' },
+		{ id: idx++, name: 'C' },
+		{ id: idx++, name: 'D' },
+		{ id: idx++, name: 'E' },
+		{ id: idx++, name: 'F' },
+		{ id: idx++, name: 'G' }
 	]);
 
 	let options = $derived({
@@ -55,9 +56,9 @@
 		</div>
 		<div use:dndzone={options} onconsider={handleDnd} onfinalize={handleDnd}>
 			{#each items as item (item.id)}
-				<div animate:flip={{ duration: FLIP_DURATION }}>
+				<div animate:flip={{ duration: FLIP_DURATION }} class="w-fit">
 					<div class="border border-white p-6">
-						{item.letter}
+						{item.name}
 					</div>
 				</div>
 			{/each}
