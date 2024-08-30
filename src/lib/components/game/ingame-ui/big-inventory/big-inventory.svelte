@@ -3,64 +3,31 @@
 		id: number;
 		name: string;
 		size: [number, number];
-		isDndShadowItem?: boolean;
 	};
 </script>
 
 <script lang="ts">
-	import { dndzone, type Options } from 'svelte-dnd-action';
-	import { flip } from 'svelte/animate';
-	import Slot from './Slot.svelte';
-	import DropGrid from './DropGrid.svelte';
-	import { on } from 'svelte/events';
-	import OutsideTile from './OutsideTile.svelte';
+	import { draggable, dropzone } from './dropzone';
 
 	const INVENTORY_SIZE = 8;
-	const FLIP_DURATION = 200;
 
-	let idx = 0;
-
-	let items = $state<Item[]>([
-		{ id: idx++, name: 'A', size: [1, 1] },
-		{ id: idx++, name: 'B', size: [2, 1] },
-		{ id: idx++, name: 'C', size: [1, 2] },
-		{ id: idx++, name: 'D', size: [2, 2] },
-		{ id: idx++, name: 'E', size: [3, 2] },
-		{ id: idx++, name: 'F', size: [2, 3] }
-	]);
-
-	let options = $derived({
-		items,
-		flipDurationMs: FLIP_DURATION,
-		morphDisabled: true,
-		centreDraggedOnCursor: true
-	}) as Options;
-
-	function handleDnd(e: any) {
-		items = e.detail.items;
-	}
+	let draggedItemSize: [number, number] = [1, 1];
+	const draggableItems: { name: string }[] = [
+		{
+			name: 'Item 1'
+		},
+		{
+			name: 'Item 2'
+		},
+		{
+			name: 'Item 3'
+		}
+	];
 
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))
 	);
-
-	let currentlyDraggedItem = $state<Item | null>(null);
-
-	function handleDragStart(
-		e: MouseEvent & {
-			currentTarget: EventTarget & HTMLDivElement;
-		},
-		item: Item
-	) {
-		currentlyDraggedItem = item;
-	}
-
-	function endDragEvent() {
-		currentlyDraggedItem = null;
-	}
 </script>
-
-<svelte:window on:mouseup={endDragEvent} />
 
 <section
 	class="absolute inset-0 bg-[#00000055] p-8"
@@ -73,27 +40,29 @@
 			<div class="inventory-split__tiles aspect-square p-2">
 				{#each boardGrid as col, index}
 					{#each col as square, index2}
-						<div class="h-full w-full">
-							<Slot />
+						<div
+							use:dropzone={{
+								addClassesOnDragStart: ['border-yellow-500', 'border-4']
+							}}
+							class="h-full w-full rounded-lg bg-pink-500 duration-100"
+						>
+							<!-- <div class="absolute border-2 border-yellow-400" style="width: calc({100 * getTileX()}% + {0.5 *
+							(getTileX() - 1)}rem); height: calc({100 * getTileY()}% + {0.5 *
+							(getTileY() - 1)}rem);">
+
+						</div> -->
 						</div>
 					{/each}
 				{/each}
 			</div>
-			<DropGrid
-				inventorySize={INVENTORY_SIZE}
-				tileSize={currentlyDraggedItem?.size}
-			/>
 		</div>
-		<!-- svelte-ignore event_directive_deprecated -->
-		<div use:dndzone={options} on:consider={handleDnd} on:finalize={handleDnd}>
-			{#each items as item (item.id)}
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div>
+			{#each draggableItems as item}
 				<div
-					animate:flip={{ duration: FLIP_DURATION }}
-					on:mousedown={(e) => handleDragStart(e, item)}
-					class="w-fit"
+					class="w-fit border border-white p-2 text-xl"
+					use:draggable={{ originalNodeClassesOnDrag: ['opacity-50'] }}
 				>
-					<OutsideTile {item} />
+					{item.name}
 				</div>
 			{/each}
 		</div>
