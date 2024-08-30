@@ -7,22 +7,28 @@
 </script>
 
 <script lang="ts">
-	import { draggable, dropzone } from './dropzone';
+	import { createDragAndDropContext } from './dropzone';
 
 	const INVENTORY_SIZE = 8;
 
 	let draggedItemSize: [number, number] = [1, 1];
-	const draggableItems: { name: string }[] = [
+	const draggableItems: { id: string; name: string }[] = $state([
 		{
+			id: '1',
 			name: 'Item 1'
 		},
 		{
+			id: '2',
 			name: 'Item 2'
 		},
 		{
+			id: '3',
 			name: 'Item 3'
 		}
-	];
+	]);
+
+	const { draggable, draggedNode, dropzone } =
+		createDragAndDropContext(draggableItems);
 
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))
@@ -60,7 +66,10 @@
 			{#each draggableItems as item}
 				<div
 					class="w-fit border border-white p-2 text-xl"
-					use:draggable={{ originalNodeClassesOnDrag: ['opacity-50'] }}
+					use:draggable={{
+						originalNodeClassesOnDrag: ['opacity-50'],
+						itemId: item.id
+					}}
 				>
 					{item.name}
 				</div>
