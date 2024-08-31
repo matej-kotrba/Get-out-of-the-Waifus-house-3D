@@ -7,28 +7,30 @@
 </script>
 
 <script lang="ts">
-	import { createDragAndDropContext } from './dropzone';
+	import { createDragAndDropContext } from './dropzone.svelte';
 
 	const INVENTORY_SIZE = 8;
 
 	let draggedItemSize: [number, number] = [1, 1];
-	const draggableItems: { id: string; name: string }[] = $state([
+	const draggableItems: { name: string }[] = $state([
 		{
-			id: '1',
 			name: 'Item 1'
 		},
 		{
-			id: '2',
 			name: 'Item 2'
 		},
 		{
-			id: '3',
 			name: 'Item 3'
 		}
 	]);
 
-	const { draggable, draggedNode, dropzone } =
-		createDragAndDropContext(draggableItems);
+	const { draggable, draggedNode, dropzone, items } = createDragAndDropContext<{
+		name: string;
+	}>([]);
+
+	$effect(() => {
+		console.log(items);
+	});
 
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))
@@ -44,15 +46,28 @@
 	>
 		<div class="relative h-fit max-w-[50rem]">
 			<div class="inventory-split__tiles aspect-square p-2">
-				{#each boardGrid as col, index}
-					{#each col as square, index2}
+				{#each boardGrid as col, idxRow}
+					{#each col as square, idxCol}
 						<div
 							use:dropzone={{
+								id: `${idxRow}${idxCol}`,
 								addClassesOnDragStart: ['border-yellow-500', 'border-4'],
 								itemsInDropzoneLimit: 1
 							}}
 							class="h-full w-full rounded-lg bg-pink-500 duration-100"
 						>
+							{#if idxRow === 1 && idxCol === 4}
+								<div
+									class="w-fit border border-white p-2 text-xl"
+									use:draggable={{
+										id: `${idxRow}${idxCol}`,
+										item: { name: 'halooo' },
+										originalNodeClassesOnDrag: ['opacity-0']
+									}}
+								>
+									xd
+								</div>
+							{/if}
 							<!-- <div class="absolute border-2 border-yellow-400" style="width: calc({100 * getTileX()}% + {0.5 *
 							(getTileX() - 1)}rem); height: calc({100 * getTileY()}% + {0.5 *
 							(getTileY() - 1)}rem);">
@@ -68,8 +83,8 @@
 				<div
 					class="w-fit border border-white p-2 text-xl"
 					use:draggable={{
-						originalNodeClassesOnDrag: ['opacity-0'],
-						itemId: item.id
+						item: { name: item.name },
+						originalNodeClassesOnDrag: ['opacity-0']
 					}}
 				>
 					{item.name}
