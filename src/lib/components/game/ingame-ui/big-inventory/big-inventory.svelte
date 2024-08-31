@@ -48,7 +48,8 @@
 					{#each col as square, index2}
 						<div
 							use:dropzone={{
-								addClassesOnDragStart: ['border-yellow-500', 'border-4']
+								addClassesOnDragStart: ['border-yellow-500', 'border-4'],
+								itemsInDropzoneLimit: 1
 							}}
 							class="h-full w-full rounded-lg bg-pink-500 duration-100"
 						>

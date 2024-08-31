@@ -1,6 +1,7 @@
 type Options = {
 	specificDropzoneId?: string;
 	addClassesOnDragStart?: string[];
+	itemsInDropzoneLimit?: number;
 };
 
 const callbacks: ((e: MouseEvent) => void)[] = [];
@@ -10,6 +11,8 @@ window.addEventListener('mousemove', (e) => callbacks.forEach((cb) => cb(e)));
 export function createDragAndDropContext<T extends { id: string }[]>(items: T) {
 	const dropzone = (node: HTMLElement, options?: Options) => {
 		node.dataset.dropzone = options?.specificDropzoneId ?? 'default';
+		node.dataset.itemsInDropzoneLimit =
+			options?.itemsInDropzoneLimit?.toString() ?? '';
 		node.dataset.dropzoneHoverStartClasses =
 			options?.addClassesOnDragStart?.join(' ') ?? '';
 
@@ -50,16 +53,24 @@ export function createDragAndDropContext<T extends { id: string }[]>(items: T) {
 
 		function getDropzones() {
 			return document.querySelectorAll(
-				`[data-dropzone="${'defualt'}"]`
+				`[data-dropzone="${'default'}"]`
 			) as unknown as HTMLElement[];
+		}
+
+		function isDropzoneAvailable(dropzone: HTMLElement) {
+			const limit = dropzone.dataset.itemsInDropzoneLimit;
+			if (limit === '') return true;
+			return !(dropzone.children.length >= Number(limit));
 		}
 
 		function higlihtDropzones() {
 			const dropzones = getDropzones();
 			dropzones.forEach((dropzone) => {
-				const classes = dropzone.dataset.dropzoneHoverStartClasses;
-				if (classes) {
-					dropzone.classList.add(...classes.split(' '));
+				if (isDropzoneAvailable(dropzone)) {
+					const classes = dropzone.dataset.dropzoneHoverStartClasses;
+					if (classes) {
+						dropzone.classList.add(...classes.split(' '));
+					}
 				}
 			});
 		}
@@ -91,7 +102,12 @@ export function createDragAndDropContext<T extends { id: string }[]>(items: T) {
 			const dropzoneElement = e.target as HTMLElement;
 			const dropzoneId = dropzoneElement.dataset.dropzone;
 
-			if (dropzoneId && dropzoneElement && dropzoneElement.dataset.dropzone) {
+			if (
+				dropzoneId &&
+				dropzoneElement &&
+				dropzoneElement.dataset.dropzone &&
+				isDropzoneAvailable(dropzoneElement)
+			) {
 				console.log('Dropped on', dropzoneElement);
 				const newNode = node.cloneNode(true) as HTMLElement;
 				newNode.classList.remove(...(options?.originalNodeClassesOnDrag ?? ''));
