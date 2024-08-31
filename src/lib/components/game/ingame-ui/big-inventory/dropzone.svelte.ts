@@ -3,9 +3,11 @@ const callbacks: ((e: MouseEvent) => void)[] = [];
 window.addEventListener('mousemove', (e) => callbacks.forEach((cb) => cb(e)));
 
 export function createDragAndDropContext<T extends Record<string, unknown>>(
-	itemsTemp: { id: string; item?: T }[]
+	itemsTemp: { id: string; item?: T }[],
+	rowSize: number
 ) {
 	const items = $state(itemsTemp);
+	const nodes: HTMLElement[] = [];
 
 	type Options = {
 		id: string;
@@ -17,6 +19,7 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 	};
 
 	const dropzone = (node: HTMLElement, options: Options) => {
+		nodes.push(node);
 		node.dataset.dropzone = options?.specificDropzoneId ?? 'default';
 		node.dataset.itemsInDropzoneLimit =
 			options?.itemsInDropzoneLimit?.toString() ?? '';
@@ -26,11 +29,40 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 
 		function onDragEnter() {
 			if (draggedNode) {
+				const size = draggedNode.details.size;
+				const initialNodeIdx = nodes.indexOf(node);
+				if (initialNodeIdx === -1) return;
+
+				const nodesToHighlight = [];
+
+				for (
+					let i = initialNodeIdx;
+					i < initialNodeIdx + size[1] * rowSize;
+					i += rowSize
+				) {
+					if (i >= nodes.length) return;
+					nodesToHighlight.push(nodes[i]);
+					for (let k = i; k < i + size[0]; k++) {
+						if (k - i + (i % rowSize) >= rowSize) return;
+						nodesToHighlight.push(nodes[k]);
+					}
+				}
+
+				for (const node of nodesToHighlight) {
+					node.classList.add(...(options?.onDragEnterClasses ?? []));
+				}
+
+				draggedNode.higlightedItems = nodesToHighlight;
+
 				node.classList.add(...(options?.onDragEnterClasses ?? []));
 			}
 		}
 
 		function onDragLeave() {
+			for (const node of draggedNode?.higlightedItems ?? []) {
+				node.classList.remove(...(options?.onDragEnterClasses ?? []));
+			}
+
 			node.classList.remove(...(options?.onDragEnterClasses ?? []));
 		}
 
@@ -45,22 +77,26 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 		};
 	};
 
-	let draggedNode: HTMLElement | null = null;
-
-	callbacks.push((e) => {
-		if (!draggedNode) return;
-		const x = e.clientX;
-		const y = e.clientY;
-		const rect = draggedNode.getBoundingClientRect();
-		draggedNode.style.transform = `translate(${x - rect.width / 2}px, ${y - rect.height / 2}px)`;
-	});
-
 	type DraggableOptions = {
 		item: T;
 		id?: string;
 		originalNodeClassesOnDrag?: string[];
 		size: [number, number];
 	};
+
+	let draggedNode: {
+		element: HTMLElement;
+		details: DraggableOptions;
+		higlightedItems: HTMLElement[];
+	} | null = null;
+
+	callbacks.push((e) => {
+		if (!draggedNode) return;
+		const x = e.clientX;
+		const y = e.clientY;
+		const rect = draggedNode.element.getBoundingClientRect();
+		draggedNode.element.style.transform = `translate(${x - rect.width / 2}px, ${y - rect.height / 2}px)`;
+	});
 
 	const draggable = (node: HTMLElement, options: DraggableOptions) => {
 		node.style.cursor = 'grab';
@@ -136,12 +172,16 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 		function onMousedown() {
 			node.classList.add(...(options?.originalNodeClassesOnDrag ?? ''));
 			nodeCopy.style.opacity = '1';
-			draggedNode = nodeCopy;
+			draggedNode = {
+				element: nodeCopy,
+				details: options,
+				higlightedItems: []
+			};
 			higlihtDropzones();
 		}
 
 		function onMouseup(e: MouseEvent) {
-			if (draggedNode !== nodeCopy) return;
+			if (draggedNode?.element !== nodeCopy) return;
 			const dropzoneElement = e.target as HTMLElement;
 			const dropzoneId = dropzoneElement.dataset.dropzone;
 

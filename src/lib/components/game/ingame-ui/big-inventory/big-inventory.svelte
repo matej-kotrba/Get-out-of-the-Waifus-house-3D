@@ -29,7 +29,7 @@
 
 	const { draggable, draggedNode, dropzone, items } = createDragAndDropContext<{
 		name: string;
-	}>([]);
+	}>([], INVENTORY_SIZE);
 
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))
@@ -50,11 +50,11 @@
 						<div
 							use:dropzone={{
 								id: `${idxRow}${idxCol}`,
-								addClassesOnDragStart: ['border-yellow-500', 'border-2'],
+								addClassesOnDragStart: ['!border-yellow-500'],
 								itemsInDropzoneLimit: 1,
 								onDragEnterClasses: ['bg-pink-600']
 							}}
-							class="h-full w-full rounded-lg bg-pink-500 duration-100"
+							class="h-full w-full border-2 border-slate-400 bg-pink-500 p-1 duration-100"
 						>
 							{#if idxRow === 1 && idxCol === 4}
 								<div
@@ -108,7 +108,6 @@
 		grid-template-columns: repeat(var(--inventory-size), 1fr);
 		grid-template-rows: repeat(var(--inventory-size), 1fr);
 		grid-auto-rows: max-content;
-		gap: 0.5rem;
 		overflow-y: auto;
 	}
 </style>
