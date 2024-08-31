@@ -3,7 +3,7 @@ const callbacks: ((e: MouseEvent) => void)[] = [];
 window.addEventListener('mousemove', (e) => callbacks.forEach((cb) => cb(e)));
 
 export function createDragAndDropContext<T extends Record<string, unknown>>(
-	itemsTemp: { id: string; item?: T }[],
+	itemsTemp: { id: string; item?: T; relatesToId?: HTMLElement }[],
 	rowSize: number
 ) {
 	const items = $state(itemsTemp);
@@ -18,6 +18,30 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 		onDragEnterClasses?: string[];
 	};
 
+	function getDropzonesByNodeAndSize(
+		node: HTMLElement,
+		size: [number, number]
+	): HTMLElement[] | void {
+		const initialNodeIdx = nodes.indexOf(node);
+		if (initialNodeIdx === -1) return;
+
+		const foundNodes: HTMLElement[] = [];
+
+		for (
+			let i = initialNodeIdx;
+			i < initialNodeIdx + size[1] * rowSize;
+			i += rowSize
+		) {
+			if (i >= nodes.length) return;
+			for (let k = i; k < i + size[0]; k++) {
+				if (k - i + (i % rowSize) >= rowSize) return;
+				foundNodes.push(nodes[k]);
+			}
+		}
+
+		return foundNodes;
+	}
+
 	const dropzone = (node: HTMLElement, options: Options) => {
 		nodes.push(node);
 		node.dataset.dropzone = options?.specificDropzoneId ?? 'default';
@@ -25,28 +49,17 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 			options?.itemsInDropzoneLimit?.toString() ?? '';
 		node.dataset.dropzoneHoverStartClasses =
 			options?.addClassesOnDragStart?.join(' ') ?? '';
+		node.dataset.onDragEnterClasses =
+			options?.onDragEnterClasses?.join(' ') ?? '';
 		node.dataset.id = options.id;
 
 		function onDragEnter() {
 			if (draggedNode) {
-				const size = draggedNode.details.size;
-				const initialNodeIdx = nodes.indexOf(node);
-				if (initialNodeIdx === -1) return;
-
-				const nodesToHighlight = [];
-
-				for (
-					let i = initialNodeIdx;
-					i < initialNodeIdx + size[1] * rowSize;
-					i += rowSize
-				) {
-					if (i >= nodes.length) return;
-					nodesToHighlight.push(nodes[i]);
-					for (let k = i; k < i + size[0]; k++) {
-						if (k - i + (i % rowSize) >= rowSize) return;
-						nodesToHighlight.push(nodes[k]);
-					}
-				}
+				const nodesToHighlight = getDropzonesByNodeAndSize(
+					node,
+					draggedNode.details.size
+				);
+				if (!nodesToHighlight) return;
 
 				for (const node of nodesToHighlight) {
 					node.classList.add(...(options?.onDragEnterClasses ?? []));
@@ -158,9 +171,11 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 			const dropzones = getDropzones();
 			dropzones.forEach((dropzone) => {
 				const classes = dropzone.dataset.dropzoneHoverStartClasses;
-				if (classes) {
-					dropzone.classList.remove(...classes.split(' '));
-				}
+				const classesDrag = dropzone.dataset.onDragEnterClasses;
+				dropzone.classList.remove(
+					...(classes ?? ' ').split(' '),
+					...(classesDrag ?? ' ').split(' ')
+				);
 			});
 		}
 
@@ -172,6 +187,7 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 		function onMousedown() {
 			node.classList.add(...(options?.originalNodeClassesOnDrag ?? ''));
 			nodeCopy.style.opacity = '1';
+
 			draggedNode = {
 				element: nodeCopy,
 				details: options,
@@ -185,11 +201,40 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 			const dropzoneElement = e.target as HTMLElement;
 			const dropzoneId = dropzoneElement.dataset.dropzone;
 
+			let isAllowed = false;
+			const connectedNodes = getDropzonesByNodeAndSize(
+				dropzoneElement,
+				options.size
+			);
+
+			if (
+				connectedNodes &&
+				connectedNodes.length === options.size[0] * options.size[1]
+			) {
+				for (const nodeToConnect of connectedNodes) {
+					const id = nodeToConnect.dataset.id;
+					if (id) {
+						const item = items.find((item) => item.id === id);
+						if (item) {
+							item.relatesToId = node;
+							console.log(item);
+							if (item.relatesToId || item.item) {
+								isAllowed = false;
+								break;
+							}
+						}
+					}
+				}
+
+				isAllowed = true;
+			}
+
 			if (
 				dropzoneId &&
 				dropzoneElement &&
 				dropzoneElement.dataset.dropzone &&
-				isDropzoneAvailable(dropzoneElement)
+				isDropzoneAvailable(dropzoneElement) &&
+				isAllowed === true
 			) {
 				const newNode = node.cloneNode(true) as HTMLElement;
 				newNode.classList.remove(...(options?.originalNodeClassesOnDrag ?? ''));
