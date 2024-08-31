@@ -13,6 +13,7 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 		specificDropzoneId?: string;
 		addClassesOnDragStart?: string[];
 		itemsInDropzoneLimit?: number;
+		onDragEnterClasses?: string[];
 	};
 
 	const dropzone = (node: HTMLElement, options: Options) => {
@@ -23,8 +24,24 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 			options?.addClassesOnDragStart?.join(' ') ?? '';
 		node.dataset.id = options.id;
 
+		function onDragEnter() {
+			if (draggedNode) {
+				node.classList.add(...(options?.onDragEnterClasses ?? []));
+			}
+		}
+
+		function onDragLeave() {
+			node.classList.remove(...(options?.onDragEnterClasses ?? []));
+		}
+
+		node.addEventListener('mouseenter', onDragEnter);
+		node.addEventListener('mouseleave', onDragLeave);
+
 		return {
-			destroy() {}
+			destroy() {
+				window.removeEventListener('mouseenter', onDragEnter);
+				window.removeEventListener('mouseleave', onDragLeave);
+			}
 		};
 	};
 
@@ -42,6 +59,7 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 		item: T;
 		id?: string;
 		originalNodeClassesOnDrag?: string[];
+		size: [number, number];
 	};
 
 	const draggable = (node: HTMLElement, options: DraggableOptions) => {
@@ -138,17 +156,14 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 				dropzoneElement.appendChild(newNode);
 				const newId = dropzoneElement.dataset.id;
 				const oldId = node.parentElement?.dataset.id;
-				console.log(oldId);
 				if (oldId) {
 					removeItemFromDropzoneItemById(oldId);
 				}
 				if (newId) {
 					draggable(newNode, { ...options, id: newId, item: options.item });
-					// addItemToDropzoneItemById(newId, options.item);
 					nodeCopy.remove();
 					node.remove();
 				}
-				console.log(items);
 			} else {
 				resetPosition();
 				node.classList.remove(...(options?.originalNodeClassesOnDrag ?? ''));

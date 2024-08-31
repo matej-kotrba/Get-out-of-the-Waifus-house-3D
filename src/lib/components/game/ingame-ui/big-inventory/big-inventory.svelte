@@ -12,25 +12,24 @@
 	const INVENTORY_SIZE = 8;
 
 	let draggedItemSize: [number, number] = [1, 1];
-	const draggableItems: { name: string }[] = $state([
+	const draggableItems: { name: string; size: [number, number] }[] = $state([
 		{
-			name: 'Item 1'
+			name: 'Item 1',
+			size: [1, 1]
 		},
 		{
-			name: 'Item 2'
+			name: 'Item 2',
+			size: [2, 1]
 		},
 		{
-			name: 'Item 3'
+			name: 'Item 3',
+			size: [2, 2]
 		}
 	]);
 
 	const { draggable, draggedNode, dropzone, items } = createDragAndDropContext<{
 		name: string;
 	}>([]);
-
-	$effect(() => {
-		console.log(items);
-	});
 
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))
@@ -51,8 +50,9 @@
 						<div
 							use:dropzone={{
 								id: `${idxRow}${idxCol}`,
-								addClassesOnDragStart: ['border-yellow-500', 'border-4'],
-								itemsInDropzoneLimit: 1
+								addClassesOnDragStart: ['border-yellow-500', 'border-2'],
+								itemsInDropzoneLimit: 1,
+								onDragEnterClasses: ['bg-pink-600']
 							}}
 							class="h-full w-full rounded-lg bg-pink-500 duration-100"
 						>
@@ -62,7 +62,8 @@
 									use:draggable={{
 										id: `${idxRow}${idxCol}`,
 										item: { name: 'halooo' },
-										originalNodeClassesOnDrag: ['opacity-0']
+										originalNodeClassesOnDrag: ['opacity-0'],
+										size: [1, 1]
 									}}
 								>
 									xd
@@ -84,7 +85,8 @@
 					class="w-fit border border-white p-2 text-xl"
 					use:draggable={{
 						item: { name: item.name },
-						originalNodeClassesOnDrag: ['opacity-0']
+						originalNodeClassesOnDrag: ['opacity-0'],
+						size: item.size
 					}}
 				>
 					{item.name}
