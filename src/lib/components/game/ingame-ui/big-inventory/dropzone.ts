@@ -39,7 +39,6 @@ export function createDragAndDropContext<T extends { id: string }[]>(items: T) {
 	const draggable = (node: HTMLElement, options: DraggableOptions) => {
 		node.style.cursor = 'grab';
 		node.style.userSelect = 'none';
-		node.dataset.dropzone = 'default';
 		const nodeCopy = node.cloneNode(true) as HTMLElement;
 		nodeCopy.style.position = 'absolute';
 		nodeCopy.style.zIndex = '1000';
@@ -51,7 +50,7 @@ export function createDragAndDropContext<T extends { id: string }[]>(items: T) {
 
 		function getDropzones() {
 			return document.querySelectorAll(
-				`[data-dropzone="${node.dataset.dropzone}"]`
+				`[data-dropzone="${'defualt'}"]`
 			) as unknown as HTMLElement[];
 		}
 
@@ -76,7 +75,8 @@ export function createDragAndDropContext<T extends { id: string }[]>(items: T) {
 		}
 
 		function resetPosition() {
-			nodeCopy.style.transform = `translate(${node.offsetLeft}px, ${node.offsetTop}px)`;
+			const rect = node.getBoundingClientRect();
+			nodeCopy.style.transform = `translate(${rect.left}px, ${rect.top}px)`;
 		}
 
 		function onMousedown(e: MouseEvent) {
@@ -88,15 +88,25 @@ export function createDragAndDropContext<T extends { id: string }[]>(items: T) {
 
 		function onMouseup(e: MouseEvent) {
 			if (draggedNode !== nodeCopy) return;
-			const dropzone = (e.target as HTMLElement)?.dataset.dropzone;
-			if (!dropzone) {
+			const dropzoneElement = e.target as HTMLElement;
+			const dropzoneId = dropzoneElement.dataset.dropzone;
+
+			if (dropzoneId && dropzoneElement && dropzoneElement.dataset.dropzone) {
+				console.log('Dropped on', dropzoneElement);
+				const newNode = node.cloneNode(true) as HTMLElement;
+				newNode.classList.remove(...(options?.originalNodeClassesOnDrag ?? ''));
+				dropzoneElement.appendChild(newNode);
+				draggable(newNode, options);
+				nodeCopy.remove();
+				node.remove();
+			} else {
 				resetPosition();
+				node.classList.remove(...(options?.originalNodeClassesOnDrag ?? ''));
+				nodeCopy.style.opacity = '0';
 			}
 
-			node.classList.remove(...(options?.originalNodeClassesOnDrag ?? ''));
-			nodeCopy.style.opacity = '0';
-			draggedNode = null;
 			removeHighlightDropzones();
+			draggedNode = null;
 		}
 
 		node.addEventListener('mousedown', onMousedown);

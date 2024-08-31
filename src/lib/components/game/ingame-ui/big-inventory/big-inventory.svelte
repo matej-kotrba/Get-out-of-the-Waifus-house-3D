@@ -67,7 +67,7 @@
 				<div
 					class="w-fit border border-white p-2 text-xl"
 					use:draggable={{
-						originalNodeClassesOnDrag: ['opacity-50'],
+						originalNodeClassesOnDrag: ['opacity-0'],
 						itemId: item.id
 					}}
 				>
