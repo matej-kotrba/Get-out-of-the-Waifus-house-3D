@@ -3,64 +3,38 @@
 		id: number;
 		name: string;
 		size: [number, number];
-		isDndShadowItem?: boolean;
 	};
 </script>
 
 <script lang="ts">
-	import { dndzone, type Options } from 'svelte-dnd-action';
-	import { flip } from 'svelte/animate';
-	import Slot from './Slot.svelte';
-	import DropGrid from './DropGrid.svelte';
-	import { on } from 'svelte/events';
-	import OutsideTile from './OutsideTile.svelte';
+	import { createDragAndDropContext } from './dropzone.svelte';
 
 	const INVENTORY_SIZE = 8;
-	const FLIP_DURATION = 200;
 
-	let idx = 0;
-
-	let items = $state<Item[]>([
-		{ id: idx++, name: 'A', size: [1, 1] },
-		{ id: idx++, name: 'B', size: [2, 1] },
-		{ id: idx++, name: 'C', size: [1, 2] },
-		{ id: idx++, name: 'D', size: [2, 2] },
-		{ id: idx++, name: 'E', size: [3, 2] },
-		{ id: idx++, name: 'F', size: [2, 3] }
+	let draggedItemSize: [number, number] = [1, 1];
+	const draggableItems: { name: string; size: [number, number] }[] = $state([
+		{
+			name: 'Item 1',
+			size: [1, 1]
+		},
+		{
+			name: 'Item 2',
+			size: [2, 1]
+		},
+		{
+			name: 'Item 3',
+			size: [2, 2]
+		}
 	]);
 
-	let options = $derived({
-		items,
-		flipDurationMs: FLIP_DURATION,
-		morphDisabled: true,
-		centreDraggedOnCursor: true
-	}) as Options;
-
-	function handleDnd(e: any) {
-		items = e.detail.items;
-	}
+	const { draggable, draggedNode, dropzone, items } = createDragAndDropContext<{
+		name: string;
+	}>([], INVENTORY_SIZE);
 
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))
 	);
-
-	let currentlyDraggedItem = $state<Item | null>(null);
-
-	function handleDragStart(
-		e: MouseEvent & {
-			currentTarget: EventTarget & HTMLDivElement;
-		},
-		item: Item
-	) {
-		currentlyDraggedItem = item;
-	}
-
-	function endDragEvent() {
-		currentlyDraggedItem = null;
-	}
 </script>
-
-<svelte:window on:mouseup={endDragEvent} />
 
 <section
 	class="absolute inset-0 bg-[#00000055] p-8"
@@ -71,29 +45,51 @@
 	>
 		<div class="relative h-fit max-w-[50rem]">
 			<div class="inventory-split__tiles aspect-square p-2">
-				{#each boardGrid as col, index}
-					{#each col as square, index2}
-						<div class="h-full w-full">
-							<Slot />
+				{#each boardGrid as col, idxRow}
+					{#each col as square, idxCol}
+						<div
+							use:dropzone={{
+								id: `${idxRow}${idxCol}`,
+								addClassesOnDragStart: ['!border-yellow-500'],
+								itemsInDropzoneLimit: 1,
+								onDragEnterClasses: ['bg-pink-600']
+							}}
+							class="h-full w-full border-2 border-slate-400 bg-pink-500 p-1 duration-100"
+						>
+							{#if idxRow === 1 && idxCol === 4}
+								<div
+									class="w-fit border border-white p-2 text-xl"
+									use:draggable={{
+										id: `${idxRow}${idxCol}`,
+										item: { name: 'halooo' },
+										originalNodeClassesOnDrag: ['opacity-0'],
+										size: [1, 1]
+									}}
+								>
+									xd
+								</div>
+							{/if}
+							<!-- <div class="absolute border-2 border-yellow-400" style="width: calc({100 * getTileX()}% + {0.5 *
+							(getTileX() - 1)}rem); height: calc({100 * getTileY()}% + {0.5 *
+							(getTileY() - 1)}rem);">
+
+						</div> -->
 						</div>
 					{/each}
 				{/each}
 			</div>
-			<DropGrid
-				inventorySize={INVENTORY_SIZE}
-				tileSize={currentlyDraggedItem?.size}
-			/>
 		</div>
-		<!-- svelte-ignore event_directive_deprecated -->
-		<div use:dndzone={options} on:consider={handleDnd} on:finalize={handleDnd}>
-			{#each items as item (item.id)}
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div>
+			{#each draggableItems as item}
 				<div
-					animate:flip={{ duration: FLIP_DURATION }}
-					on:mousedown={(e) => handleDragStart(e, item)}
-					class="w-fit"
+					class="w-fit border border-white p-2 text-xl"
+					use:draggable={{
+						item: { name: item.name },
+						originalNodeClassesOnDrag: ['opacity-0'],
+						size: item.size
+					}}
 				>
-					<OutsideTile {item} />
+					{item.name}
 				</div>
 			{/each}
 		</div>
@@ -112,7 +108,6 @@
 		grid-template-columns: repeat(var(--inventory-size), 1fr);
 		grid-template-rows: repeat(var(--inventory-size), 1fr);
 		grid-auto-rows: max-content;
-		gap: 0.5rem;
 		overflow-y: auto;
 	}
 </style>
