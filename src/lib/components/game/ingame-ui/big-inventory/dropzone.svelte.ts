@@ -4,7 +4,12 @@ window.addEventListener('mousemove', (e) => callbacks.forEach((cb) => cb(e)));
 
 type Params = Record<string, unknown>;
 
-type Item<T extends Params> = { id: string; item?: T; relatesTo?: HTMLElement };
+type Item<T extends Params> = {
+	id: string;
+	item?: T;
+	relatesTo?: HTMLElement;
+	size: [number, number];
+};
 
 type DropzoneOptions = {
 	id: string;
@@ -149,13 +154,17 @@ export class DragAndDropContext<T extends Params> {
 	};
 
 	private draggable = (node: HTMLElement, options: DraggableOptions<T>) => {
-		const addItemToDropzoneItemById = (id: string, item: T) => {
+		const addItemToDropzoneItemById = (
+			id: string,
+			item: T,
+			size: [number, number]
+		) => {
 			const dropzone = this.#items.find((dz) => dz.id === id);
 			if (!dropzone) {
-				this.#items = [...this.#items, { id, item }];
+				this.#items = [...this.#items, { id, item, size }];
 			} else {
 				const idx = this.#items.indexOf(dropzone);
-				this.#items[idx] = { ...dropzone, item };
+				this.#items[idx] = { ...dropzone, item, size };
 			}
 		};
 
@@ -265,7 +274,10 @@ export class DragAndDropContext<T extends Params> {
 			existingItemsToBeEdited: { id: string; node: HTMLElement }[]
 		) => {
 			for (const { id, node } of newItemsToBeCreated) {
-				this.#items = [...this.#items, { id, relatesTo: node }];
+				this.#items = [
+					...this.#items,
+					{ id, relatesTo: node, size: options.size }
+				];
 			}
 
 			for (const { id, node } of existingItemsToBeEdited) {
@@ -339,7 +351,8 @@ export class DragAndDropContext<T extends Params> {
 					this.draggable(newNode, {
 						...options,
 						id: newId,
-						item: options.item
+						item: options.item,
+						size: options.size
 					});
 					nodeCopy.remove();
 					node.remove();
@@ -365,7 +378,7 @@ export class DragAndDropContext<T extends Params> {
 		resetPosition();
 		document.body.appendChild(nodeCopy);
 		if (options.id) {
-			addItemToDropzoneItemById(options.id, options.item);
+			addItemToDropzoneItemById(options.id, options.item, options.size);
 		}
 
 		node.addEventListener('mousedown', onMousedown);

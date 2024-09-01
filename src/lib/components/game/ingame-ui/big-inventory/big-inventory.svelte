@@ -32,10 +32,6 @@
 	}>([], INVENTORY_SIZE);
 	const { draggable, draggedNode, dropzone } = context.get();
 
-	$effect(() => {
-		console.log(context.items);
-	});
-
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))
 	);
@@ -52,6 +48,12 @@
 			<div class="inventory-split__tiles aspect-square p-2">
 				{#each boardGrid as col, idxRow}
 					{#each col as square, idxCol}
+						{@const isRelated = context.items.find(
+							(item) => item.id === `${idxRow}${idxCol}`
+						)?.relatesTo}
+						{@const size = context.items.find(
+							(item) => item.id === `${idxRow}${idxCol}`
+						)?.size}
 						<div
 							use:dropzone={{
 								id: `${idxRow}${idxCol}`,
@@ -60,8 +62,9 @@
 								onDragEnterClasses: ['bg-pink-600']
 							}}
 							class="h-full w-full border-2 border-slate-400 bg-pink-500 p-1 duration-100"
-						>
-							{#if idxRow === 1 && idxCol === 4}
+							style={`${isRelated ? 'display: none;' : ''};${size ? `grid-column: span ${size[0]}; grid-row: span ${size[1]}` : ''}`}
+						></div>
+						<!-- {#if idxRow === 1 && idxCol === 4}
 								<div
 									class="w-fit border border-white p-2 text-xl"
 									use:draggable={{
@@ -73,13 +76,12 @@
 								>
 									xd
 								</div>
-							{/if}
-							<!-- <div class="absolute border-2 border-yellow-400" style="width: calc({100 * getTileX()}% + {0.5 *
+							{/if} -->
+						<!-- <div class="absolute border-2 border-yellow-400" style="width: calc({100 * getTileX()}% + {0.5 *
 							(getTileX() - 1)}rem); height: calc({100 * getTileY()}% + {0.5 *
 							(getTileY() - 1)}rem);">
 
 						</div> -->
-						</div>
 					{/each}
 				{/each}
 			</div>
