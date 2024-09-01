@@ -231,9 +231,10 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 				if (id) {
 					const item = items.find((item) => item.id === id);
 					if (item) {
+						console.log(item.id, movedFromId);
 						if (
 							(item.relatesTo && item.relatesTo !== originalDropzone) ||
-							item.item
+							(item.item && item.id !== movedFromId)
 						) {
 							return { can: false };
 						} else {
