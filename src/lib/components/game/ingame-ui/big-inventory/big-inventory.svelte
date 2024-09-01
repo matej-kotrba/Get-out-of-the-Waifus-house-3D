@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-	import { createDragAndDropContext } from './dropzone.svelte';
+	import { DragAndDropContext } from './dropzone.svelte';
 
 	const INVENTORY_SIZE = 8;
 
@@ -27,9 +27,14 @@
 		}
 	]);
 
-	const { draggable, draggedNode, dropzone, items } = createDragAndDropContext<{
+	const context = new DragAndDropContext<{
 		name: string;
 	}>([], INVENTORY_SIZE);
+	const { draggable, draggedNode, dropzone } = context.get();
+
+	$effect(() => {
+		console.log(context.items);
+	});
 
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))

@@ -2,61 +2,106 @@ const callbacks: ((e: MouseEvent) => void)[] = [];
 
 window.addEventListener('mousemove', (e) => callbacks.forEach((cb) => cb(e)));
 
-export function createDragAndDropContext<T extends Record<string, unknown>>(
-	itemsTemp: { id: string; item?: T; relatesTo?: HTMLElement }[],
-	rowSize: number
-) {
-	const items = $state(itemsTemp);
-	const nodes: HTMLElement[] = [];
+type Params = Record<string, unknown>;
 
-	type Options = {
-		id: string;
-		// itemsInDropzone?: Exclude<T, 'id'>[];
-		specificDropzoneId?: string;
-		addClassesOnDragStart?: string[];
-		itemsInDropzoneLimit?: number;
-		onDragEnterClasses?: string[];
-	};
+type Item<T extends Params> = { id: string; item?: T; relatesTo?: HTMLElement };
 
-	function getConnectedNodes(initialNodeIdx: number, size: [number, number]) {
+type DropzoneOptions = {
+	id: string;
+	// itemsInDropzone?: Exclude<T, 'id'>[];
+	specificDropzoneId?: string;
+	addClassesOnDragStart?: string[];
+	itemsInDropzoneLimit?: number;
+	onDragEnterClasses?: string[];
+};
+
+type DraggableOptions<T extends Params> = {
+	item: T;
+	id?: string;
+	originalNodeClassesOnDrag?: string[];
+	size: [number, number];
+};
+
+type DraggedNode<T extends Params> = {
+	element: HTMLElement;
+	details: DraggableOptions<T>;
+	higlightedItems: HTMLElement[];
+};
+
+export class DragAndDropContext<T extends Params> {
+	#items: Item<T>[] = $state([]);
+	#nodes: HTMLElement[] = [];
+	#draggedNode: DraggedNode<T> | null = null;
+	#rowSize: number;
+
+	constructor(itemsTemp: Item<T>[], rowSize: number) {
+		this.#items = itemsTemp;
+		this.#rowSize = rowSize;
+		callbacks.push((e) => {
+			if (!this.#draggedNode) return;
+			const x = e.clientX;
+			const y = e.clientY;
+			const rect = this.#draggedNode.element.getBoundingClientRect();
+			this.#draggedNode.element.style.transform = `translate(${x - rect.width / 2}px, ${y - rect.height / 2}px)`;
+		});
+	}
+
+	public get items() {
+		return this.#items;
+	}
+
+	public get() {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const self = this;
+		return {
+			dropzone: this.dropzone,
+			draggable: this.draggable,
+			draggedNode: this.#draggedNode,
+			get items(): Item<T>[] {
+				return self.#items;
+			}
+		};
+	}
+
+	private getConnectedNodes(initialNodeIdx: number, size: [number, number]) {
 		const connectedNodes: HTMLElement[] = [];
 		for (
 			let i = initialNodeIdx;
-			i < initialNodeIdx + size[1] * rowSize;
-			i += rowSize
+			i < initialNodeIdx + size[1] * this.#rowSize;
+			i += this.#rowSize
 		) {
-			if (i >= nodes.length) return;
+			if (i >= this.#nodes.length) return;
 			for (let k = i; k < i + size[0]; k++) {
-				if (k - i + (i % rowSize) >= rowSize) return;
-				connectedNodes.push(nodes[k]);
+				if (k - i + (i % this.#rowSize) >= this.#rowSize) return;
+				connectedNodes.push(this.#nodes[k]);
 			}
 		}
 
 		return connectedNodes;
 	}
 
-	function getDropzonesByNodeAndSize(
+	private getDropzonesByNodeAndSize(
 		node: HTMLElement,
 		size: [number, number]
 	): HTMLElement[] | void {
-		const initialNodeIdx = nodes.indexOf(node);
+		const initialNodeIdx = this.#nodes.indexOf(node);
 		if (initialNodeIdx === -1) return;
 
-		return getConnectedNodes(initialNodeIdx, size);
+		return this.getConnectedNodes(initialNodeIdx, size);
 	}
 
-	function getDropzonesByIdAndSize(
+	private getDropzonesByIdAndSize(
 		id: string,
 		size: [number, number]
 	): HTMLElement[] | void {
-		const node = nodes.find((node) => node.dataset.id === id);
+		const node = this.#nodes.find((node) => node.dataset.id === id);
 		if (!node) return;
 
-		return getConnectedNodes(nodes.indexOf(node), size);
+		return this.getConnectedNodes(this.#nodes.indexOf(node), size);
 	}
 
-	const dropzone = (node: HTMLElement, options: Options) => {
-		nodes.push(node);
+	private dropzone = (node: HTMLElement, options: DropzoneOptions) => {
+		this.#nodes.push(node);
 		node.dataset.dropzone = options?.specificDropzoneId ?? 'default';
 		node.dataset.itemsInDropzoneLimit =
 			options?.itemsInDropzoneLimit?.toString() ?? '';
@@ -66,11 +111,11 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 			options?.onDragEnterClasses?.join(' ') ?? '';
 		node.dataset.id = options.id;
 
-		function onDragEnter() {
-			if (draggedNode) {
-				const nodesToHighlight = getDropzonesByNodeAndSize(
+		const onDragEnter = () => {
+			if (this.#draggedNode) {
+				const nodesToHighlight = this.getDropzonesByNodeAndSize(
 					node,
-					draggedNode.details.size
+					this.#draggedNode.details.size
 				);
 				if (!nodesToHighlight) return;
 
@@ -78,19 +123,19 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 					node.classList.add(...(options?.onDragEnterClasses ?? []));
 				}
 
-				draggedNode.higlightedItems = nodesToHighlight;
+				this.#draggedNode.higlightedItems = nodesToHighlight;
 
 				node.classList.add(...(options?.onDragEnterClasses ?? []));
 			}
-		}
+		};
 
-		function onDragLeave() {
-			for (const node of draggedNode?.higlightedItems ?? []) {
+		const onDragLeave = () => {
+			for (const node of this.#draggedNode?.higlightedItems ?? []) {
 				node.classList.remove(...(options?.onDragEnterClasses ?? []));
 			}
 
 			node.classList.remove(...(options?.onDragEnterClasses ?? []));
-		}
+		};
 
 		node.addEventListener('mouseenter', onDragEnter);
 		node.addEventListener('mouseleave', onDragLeave);
@@ -103,66 +148,31 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 		};
 	};
 
-	type DraggableOptions = {
-		item: T;
-		id?: string;
-		originalNodeClassesOnDrag?: string[];
-		size: [number, number];
-	};
-
-	let draggedNode: {
-		element: HTMLElement;
-		details: DraggableOptions;
-		higlightedItems: HTMLElement[];
-	} | null = null;
-
-	callbacks.push((e) => {
-		if (!draggedNode) return;
-		const x = e.clientX;
-		const y = e.clientY;
-		const rect = draggedNode.element.getBoundingClientRect();
-		draggedNode.element.style.transform = `translate(${x - rect.width / 2}px, ${y - rect.height / 2}px)`;
-	});
-
-	const draggable = (node: HTMLElement, options: DraggableOptions) => {
-		node.style.cursor = 'grab';
-		node.style.userSelect = 'none';
-		const nodeCopy = node.cloneNode(true) as HTMLElement;
-		nodeCopy.style.position = 'absolute';
-		nodeCopy.style.zIndex = '1000';
-		nodeCopy.style.pointerEvents = 'none';
-		nodeCopy.style.opacity = '0';
-		nodeCopy.style.transition = 'transform 0.05s ease, opacity 0.1s';
-		resetPosition();
-		document.body.appendChild(nodeCopy);
-		if (options.id) {
-			addItemToDropzoneItemById(options.id, options.item);
-		}
-
-		function addItemToDropzoneItemById(id: string, item: T) {
-			const dropzone = items.find((dz) => dz.id === id);
+	private draggable = (node: HTMLElement, options: DraggableOptions<T>) => {
+		const addItemToDropzoneItemById = (id: string, item: T) => {
+			const dropzone = this.#items.find((dz) => dz.id === id);
 			if (!dropzone) {
-				items.push({ id, item });
+				this.#items = [...this.#items, { id, item }];
 			} else {
-				const idx = items.indexOf(dropzone);
-				items[idx] = { ...dropzone, item };
+				const idx = this.#items.indexOf(dropzone);
+				this.#items[idx] = { ...dropzone, item };
 			}
-		}
+		};
 
-		function removeItemFromDropzoneItemById(
+		const removeItemFromDropzoneItemById = (
 			id: string,
 			size: [number, number]
-		) {
-			for (const item of items) {
+		) => {
+			for (const item of this.#items) {
 				if (item.id === id) {
 					item.item = undefined;
 
-					const connectedNodes = getDropzonesByIdAndSize(item.id, size);
+					const connectedNodes = this.getDropzonesByIdAndSize(item.id, size);
 					if (connectedNodes) {
 						for (const node of connectedNodes) {
 							const id = node.dataset.id;
 							if (id) {
-								const item = items.find((item) => item.id === id);
+								const item = this.#items.find((item) => item.id === id);
 								if (item) {
 									item.relatesTo = undefined;
 								}
@@ -171,21 +181,21 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 					}
 				}
 			}
-		}
+		};
 
-		function getDropzones() {
+		const getDropzones = () => {
 			return document.querySelectorAll(
 				`[data-dropzone="${'default'}"]`
 			) as unknown as HTMLElement[];
-		}
+		};
 
-		function isDropzoneAvailable(dropzone: HTMLElement) {
+		const isDropzoneAvailable = (dropzone: HTMLElement) => {
 			const limit = dropzone.dataset.itemsInDropzoneLimit;
 			if (limit === '') return true;
 			return !(dropzone.children.length >= Number(limit));
-		}
+		};
 
-		function higlihtDropzones() {
+		const higlihtDropzones = () => {
 			const dropzones = getDropzones();
 			dropzones.forEach((dropzone) => {
 				if (isDropzoneAvailable(dropzone)) {
@@ -195,9 +205,9 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 					}
 				}
 			});
-		}
+		};
 
-		function removeHighlightDropzones() {
+		const removeHighlightDropzones = () => {
 			const dropzones = getDropzones();
 			dropzones.forEach((dropzone) => {
 				const classes = dropzone.dataset.dropzoneHoverStartClasses;
@@ -207,31 +217,30 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 					...(classesDrag ?? ' ').split(' ')
 				);
 			});
-		}
+		};
 
-		function resetPosition() {
+		const resetPosition = () => {
 			const rect = node.getBoundingClientRect();
 			nodeCopy.style.transform = `translate(${rect.left}px, ${rect.top}px)`;
-		}
+		};
 
-		function canBePlaced(
+		const canBePlaced = (
 			connectedNodes: HTMLElement[],
 			targetId: string,
 			movedFromId?: string
-		) {
+		) => {
 			const newItemsToBeCreated: { id: string; node: HTMLElement }[] = [];
 			const existingItemsToBeEdited: { id: string; node: HTMLElement }[] = [];
 
-			const originalDropzone = nodes.find(
+			const originalDropzone = this.#nodes.find(
 				(node) => node.dataset.id === movedFromId
 			);
 
 			for (const nodeToConnect of connectedNodes) {
 				const id = nodeToConnect.dataset.id;
 				if (id) {
-					const item = items.find((item) => item.id === id);
+					const item = this.#items.find((item) => item.id === id);
 					if (item) {
-						console.log(item.id, movedFromId);
 						if (
 							(item.relatesTo && item.relatesTo !== originalDropzone) ||
 							(item.item && item.id !== movedFromId)
@@ -249,43 +258,43 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 			}
 
 			return { can: true, newItemsToBeCreated, existingItemsToBeEdited };
-		}
+		};
 
-		function editItemsByMovedDraggedNode(
+		const editItemsByMovedDraggedNode = (
 			newItemsToBeCreated: { id: string; node: HTMLElement }[],
 			existingItemsToBeEdited: { id: string; node: HTMLElement }[]
-		) {
+		) => {
 			for (const { id, node } of newItemsToBeCreated) {
-				items.push({ id, relatesTo: node });
+				this.#items = [...this.#items, { id, relatesTo: node }];
 			}
 
 			for (const { id, node } of existingItemsToBeEdited) {
-				const item = items.find((item) => item.id === id);
+				const item = this.#items.find((item) => item.id === id);
 				if (item) {
 					item.relatesTo = node;
 				}
 			}
-		}
+		};
 
-		function onMousedown() {
+		const onMousedown = () => {
 			node.classList.add(...(options?.originalNodeClassesOnDrag ?? ''));
 			nodeCopy.style.opacity = '1';
 
-			draggedNode = {
+			this.#draggedNode = {
 				element: nodeCopy,
 				details: options,
 				higlightedItems: []
 			};
 			higlihtDropzones();
-		}
+		};
 
-		function onMouseup(e: MouseEvent) {
-			if (draggedNode?.element !== nodeCopy) return;
+		const onMouseup = (e: MouseEvent) => {
+			if (this.#draggedNode?.element !== nodeCopy) return;
 			const dropzoneElement = e.target as HTMLElement;
 			const dropzoneId = dropzoneElement.dataset.dropzone;
 
 			let isAllowed = false;
-			const connectedNodes = getDropzonesByNodeAndSize(
+			const connectedNodes = this.getDropzonesByNodeAndSize(
 				dropzoneElement,
 				options.size
 			);
@@ -327,7 +336,11 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 					existingItemsToBeEdited
 				);
 				if (newId) {
-					draggable(newNode, { ...options, id: newId, item: options.item });
+					this.draggable(newNode, {
+						...options,
+						id: newId,
+						item: options.item
+					});
 					nodeCopy.remove();
 					node.remove();
 				}
@@ -338,7 +351,21 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 			}
 
 			removeHighlightDropzones();
-			draggedNode = null;
+			this.#draggedNode = null;
+		};
+
+		node.style.cursor = 'grab';
+		node.style.userSelect = 'none';
+		const nodeCopy = node.cloneNode(true) as HTMLElement;
+		nodeCopy.style.position = 'absolute';
+		nodeCopy.style.zIndex = '1000';
+		nodeCopy.style.pointerEvents = 'none';
+		nodeCopy.style.opacity = '0';
+		nodeCopy.style.transition = 'transform 0.05s ease, opacity 0.1s';
+		resetPosition();
+		document.body.appendChild(nodeCopy);
+		if (options.id) {
+			addItemToDropzoneItemById(options.id, options.item);
 		}
 
 		node.addEventListener('mousedown', onMousedown);
@@ -351,14 +378,5 @@ export function createDragAndDropContext<T extends Record<string, unknown>>(
 				window.removeEventListener('mouseup', onMouseup);
 			}
 		};
-	};
-
-	return {
-		dropzone,
-		draggable,
-		draggedNode,
-		get items() {
-			return items;
-		}
 	};
 }
