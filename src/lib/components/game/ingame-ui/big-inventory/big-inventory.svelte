@@ -10,8 +10,13 @@
 	import { DragAndDropContext } from './dropzone.svelte';
 
 	const INVENTORY_SIZE = 8;
+	let inventoryGrid: HTMLElement | null = $state(null);
+	let inventoryGridWidth = $derived.by(() => {
+		if (!inventoryGrid) return;
+		const rect = inventoryGrid.getBoundingClientRect();
+		return rect.width / INVENTORY_SIZE;
+	});
 
-	let draggedItemSize: [number, number] = [1, 1];
 	const draggableItems: { name: string; size: [number, number] }[] = $state([
 		{
 			name: 'Item 1',
@@ -44,7 +49,7 @@
 	<div
 		class="inventory-split h-full w-full rounded-2xl border-8 border-indigo-900 bg-indigo-600"
 	>
-		<div class="relative h-fit max-w-[50rem]">
+		<div bind:this={inventoryGrid} class="relative h-fit max-w-[50rem]">
 			<div class="inventory-split__tiles aspect-square p-2">
 				{#each boardGrid as col, idxRow}
 					{#each col as square, idxCol}
@@ -61,7 +66,7 @@
 								itemsInDropzoneLimit: 1,
 								onDragEnterClasses: ['bg-pink-600']
 							}}
-							class="h-full w-full border-2 border-slate-400 bg-pink-500 p-1 duration-100"
+							class="h-full w-full border-2 border-slate-400 bg-pink-500 duration-100"
 							style={`${isRelated ? 'display: none;' : ''};${size ? `grid-column: span ${size[0]}; grid-row: span ${size[1]}` : ''}`}
 						></div>
 						<!-- {#if idxRow === 1 && idxCol === 4}
@@ -89,15 +94,30 @@
 		<div>
 			{#each draggableItems as item}
 				<div
-					class="w-fit border border-white p-2 text-xl"
+					class="h-full w-full border border-white text-xl"
+					style="width: {inventoryGridWidth
+						? item.size[0] * inventoryGridWidth + 'px'
+						: 'auto'}; height: {inventoryGridWidth
+						? item.size[1] * inventoryGridWidth + 'px'
+						: 'auto'}"
 					use:draggable={{
 						item: { name: item.name },
 						originalNodeClassesOnDrag: ['opacity-0'],
+						pixelSize: inventoryGridWidth
+							? {
+									width: item.size[0] * inventoryGridWidth,
+									height: item.size[1] * inventoryGridWidth
+								}
+							: undefined,
+						// draggedNodeClassed: inventoryGridWidth
+						// 	? [
+						// 			`max-w-[${item.size[0] * inventoryGridWidth}px]`,
+						// 			`max-h-[${item.size[1] * inventoryGridWidth}px]`
+						// 		]
+						// 	: [],
 						size: item.size
 					}}
-				>
-					{item.name}
-				</div>
+				></div>
 			{/each}
 		</div>
 	</div>

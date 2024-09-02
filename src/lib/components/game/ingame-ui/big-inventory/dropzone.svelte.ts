@@ -24,7 +24,12 @@ type DraggableOptions<T extends Params> = {
 	item: T;
 	id?: string;
 	originalNodeClassesOnDrag?: string[];
+	draggedNodeClassed?: string[];
 	size: [number, number];
+	pixelSize?: {
+		width: number;
+		height: number;
+	};
 };
 
 type DraggedNode<T extends Params> = {
@@ -184,6 +189,7 @@ export class DragAndDropContext<T extends Params> {
 								const item = this.#items.find((item) => item.id === id);
 								if (item) {
 									item.relatesTo = undefined;
+									item.size = [1, 1];
 								}
 							}
 						}
@@ -290,13 +296,25 @@ export class DragAndDropContext<T extends Params> {
 
 		const onMousedown = () => {
 			node.classList.add(...(options?.originalNodeClassesOnDrag ?? ''));
+			nodeCopy.classList.add(...(options?.draggedNodeClassed ?? ''));
 			nodeCopy.style.opacity = '1';
+			nodeCopy.style.maxWidth = node.style.maxWidth;
+			nodeCopy.style.maxHeight = node.style.maxHeight;
 
 			this.#draggedNode = {
 				element: nodeCopy,
 				details: options,
 				higlightedItems: []
 			};
+
+			// Display grid under dragged node as [1,1]
+			// const id = node.parentElement?.dataset.id;
+			// const item = this.#items.find((item) => item.id === id);
+			// if (item) {
+			// 	const idx = this.#items.indexOf(item);
+			// 	this.#items[idx] = { ...item, size: [1, 1] };
+			// }
+
 			higlihtDropzones();
 		};
 
@@ -360,6 +378,7 @@ export class DragAndDropContext<T extends Params> {
 			} else {
 				resetPosition();
 				node.classList.remove(...(options?.originalNodeClassesOnDrag ?? ''));
+				nodeCopy.classList.remove(...(options?.draggedNodeClassed ?? ''));
 				nodeCopy.style.opacity = '0';
 			}
 
@@ -375,6 +394,12 @@ export class DragAndDropContext<T extends Params> {
 		nodeCopy.style.pointerEvents = 'none';
 		nodeCopy.style.opacity = '0';
 		nodeCopy.style.transition = 'transform 0.05s ease, opacity 0.1s';
+		if (options.pixelSize) {
+			node.style.width = options.pixelSize?.width + 'px';
+			node.style.height = options.pixelSize?.height + 'px';
+			nodeCopy.style.width = node.style.width;
+			nodeCopy.style.height = node.style.height;
+		}
 		resetPosition();
 		document.body.appendChild(nodeCopy);
 		if (options.id) {
