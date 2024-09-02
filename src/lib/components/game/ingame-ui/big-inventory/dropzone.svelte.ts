@@ -386,10 +386,11 @@ export class DragAndDropContext<T extends Params> {
 			this.#draggedNode = null;
 		};
 
-		console.log(options.pixelSize?.width);
 		node.style.cursor = 'grab';
 		node.style.userSelect = 'none';
+
 		const nodeCopy = node.cloneNode(true) as HTMLElement;
+		nodeCopy.style.cursor = 'grab';
 		nodeCopy.style.position = 'absolute';
 		nodeCopy.style.zIndex = '1000';
 		nodeCopy.style.pointerEvents = 'none';
@@ -400,6 +401,7 @@ export class DragAndDropContext<T extends Params> {
 			node.style.height = options.pixelSize?.height + 'px';
 			nodeCopy.style.width = node.style.width;
 			nodeCopy.style.height = node.style.height;
+			console.log(node.style.width, nodeCopy.style.width);
 		}
 		resetPosition();
 		document.body.appendChild(nodeCopy);

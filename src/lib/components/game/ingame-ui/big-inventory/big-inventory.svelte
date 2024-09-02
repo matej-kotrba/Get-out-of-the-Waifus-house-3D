@@ -66,7 +66,7 @@
 								itemsInDropzoneLimit: 1,
 								onDragEnterClasses: ['bg-pink-600']
 							}}
-							class="h-full w-full border-2 border-slate-400 bg-pink-500 duration-100"
+							class="h-full w-full select-none border-2 border-slate-400 bg-pink-500 duration-100"
 							style={`${isRelated ? 'display: none;' : ''};${size ? `grid-column: span ${size[0]}; grid-row: span ${size[1]}` : ''}`}
 						></div>
 						<!-- {#if idxRow === 1 && idxCol === 4}
@@ -94,7 +94,7 @@
 		<div>
 			{#each draggableItems as item}
 				<div
-					class="h-full w-full border border-white text-xl"
+					class="h-full w-full cursor-grab border border-white text-xl"
 					style="width: {inventoryGridWidth
 						? item.size[0] * inventoryGridWidth + 'px'
 						: 'auto'}; height: {inventoryGridWidth
