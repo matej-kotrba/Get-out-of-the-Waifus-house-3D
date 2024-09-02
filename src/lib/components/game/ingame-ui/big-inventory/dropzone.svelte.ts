@@ -386,6 +386,7 @@ export class DragAndDropContext<T extends Params> {
 			this.#draggedNode = null;
 		};
 
+		console.log(options.pixelSize?.width);
 		node.style.cursor = 'grab';
 		node.style.userSelect = 'none';
 		const nodeCopy = node.cloneNode(true) as HTMLElement;

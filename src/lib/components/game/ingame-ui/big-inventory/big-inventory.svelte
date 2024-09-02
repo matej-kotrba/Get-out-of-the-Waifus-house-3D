@@ -105,8 +105,8 @@
 						originalNodeClassesOnDrag: ['opacity-0'],
 						pixelSize: inventoryGridWidth
 							? {
-									width: item.size[0] * inventoryGridWidth,
-									height: item.size[1] * inventoryGridWidth
+									width: item.size[0] * inventoryGridWidth - 2 - 4,
+									height: item.size[1] * inventoryGridWidth - 2 - 4
 								}
 							: undefined,
 						// draggedNodeClassed: inventoryGridWidth
