@@ -18,7 +18,7 @@
 						? '2'
 						: '1'};"
 				>
-					<img src={record.image} alt={record.displayName} />
+					<img src={record.quickslotImage} alt={record.displayName} />
 				</div>
 			{/if}
 		{/each}

@@ -1,12 +1,5 @@
-<script context="module" lang="ts">
-	export type Item = {
-		id: number;
-		name: string;
-		size: [number, number];
-	};
-</script>
-
 <script lang="ts">
+	import type { InventoryItem } from '$lib/game/item/inventory/items-record';
 	import { DragAndDropContext } from './dropzone.svelte';
 
 	const INVENTORY_SIZE = 8;
@@ -17,18 +10,14 @@
 		return rect.width / INVENTORY_SIZE;
 	});
 
-	const draggableItems: { name: string; size: [number, number] }[] = $state([
+	const draggableItemsInInventory: InventoryItem[] = $state([]);
+
+	const draggableItemsOnGround: InventoryItem[] = $state([
 		{
-			name: 'Item 1',
-			size: [1, 1]
-		},
-		{
-			name: 'Item 2',
-			size: [2, 1]
-		},
-		{
-			name: 'Item 3',
-			size: [2, 2]
+			displayName: 'Item 1',
+			size: [2, 1],
+			quickslotImage: '/models/images/inventory-quickslot/machete.png',
+			inventoryImage: '/models/images/inventory-expanded/machete.png'
 		}
 	]);
 
@@ -40,6 +29,13 @@
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))
 	);
+
+	function getTileSizeExcludingBorders(
+		sizeMultplier: number,
+		inventoryGridWidth: number
+	) {
+		return sizeMultplier * inventoryGridWidth - 2 - 4;
+	}
 </script>
 
 <section
@@ -69,55 +65,45 @@
 							class="h-full w-full select-none border-2 border-slate-400 bg-pink-500 duration-100"
 							style={`${isRelated ? 'display: none;' : ''};${size ? `grid-column: span ${size[0]}; grid-row: span ${size[1]}` : ''}`}
 						></div>
-						<!-- {#if idxRow === 1 && idxCol === 4}
-								<div
-									class="w-fit border border-white p-2 text-xl"
-									use:draggable={{
-										id: `${idxRow}${idxCol}`,
-										item: { name: 'halooo' },
-										originalNodeClassesOnDrag: ['opacity-0'],
-										size: [1, 1]
-									}}
-								>
-									xd
-								</div>
-							{/if} -->
-						<!-- <div class="absolute border-2 border-yellow-400" style="width: calc({100 * getTileX()}% + {0.5 *
-							(getTileX() - 1)}rem); height: calc({100 * getTileY()}% + {0.5 *
-							(getTileY() - 1)}rem);">
-
-						</div> -->
 					{/each}
 				{/each}
 			</div>
 		</div>
 		<div>
-			{#each draggableItems as item}
+			{#each draggableItemsOnGround as item}
 				<div
 					class="h-full w-full cursor-grab select-none border border-white text-xl"
 					style="width: {inventoryGridWidth
-						? item.size[0] * inventoryGridWidth - 2 - 4 + 'px'
+						? getTileSizeExcludingBorders(item.size[0], inventoryGridWidth) +
+							'px'
 						: 'auto'}; height: {inventoryGridWidth
-						? item.size[1] * inventoryGridWidth - 2 - 4 + 'px'
+						? getTileSizeExcludingBorders(item.size[1], inventoryGridWidth) +
+							'px'
 						: 'auto'}"
 					use:draggable={{
-						item: { name: item.name },
+						item: { name: item.displayName },
 						originalNodeClassesOnDrag: ['opacity-0'],
 						pixelSize: inventoryGridWidth
 							? {
-									width: item.size[0] * inventoryGridWidth - 2 - 4,
-									height: item.size[1] * inventoryGridWidth - 2 - 4
+									width: getTileSizeExcludingBorders(
+										item.size[0],
+										inventoryGridWidth
+									),
+									height: getTileSizeExcludingBorders(
+										item.size[1],
+										inventoryGridWidth
+									)
 								}
 							: undefined,
-						// draggedNodeClassed: inventoryGridWidth
-						// 	? [
-						// 			`max-w-[${item.size[0] * inventoryGridWidth}px]`,
-						// 			`max-h-[${item.size[1] * inventoryGridWidth}px]`
-						// 		]
-						// 	: [],
 						size: item.size
 					}}
-				></div>
+				>
+					<img
+						src={item.inventoryImage}
+						alt={item.displayName}
+						class="pointer-events-none h-full w-full object-cover"
+					/>
+				</div>
 			{/each}
 		</div>
 	</div>

@@ -16,7 +16,7 @@ class TooltipMachine {
 		this.#lastRenderedItem = groundItem;
 
 		const title = inventoryItemsRecord[groundItem.type].displayName;
-		const image = inventoryItemsRecord[groundItem.type].image;
+		const image = inventoryItemsRecord[groundItem.type].quickslotImage;
 		const description = inventoryItemsRecord[groundItem.type].description;
 
 		const wrapper = document.createElement('div');

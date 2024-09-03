@@ -1,8 +1,10 @@
 import { itemsToPreload } from '$lib/game/general/PreloadService.svelte';
 
-type InventoryItem = {
+export type InventoryItem = {
 	displayName: string;
-	image: string;
+	quickslotImage: string;
+	inventoryImage: string;
+	size: [number, number];
 	description?: string;
 };
 
@@ -16,11 +18,16 @@ type InventoryItemsRecord = Record<InventoryKeysType, InventoryItem>;
 export const inventoryItemsRecord: InventoryItemsRecord = {
 	[EMPTY_HAND]: {
 		displayName: 'Fist',
-		image: '/models/images/inventory/fist.png'
+		quickslotImage: '/models/images/inventory-quickslot/fist.png',
+		inventoryImage: '/models/images/inventory-quickslot/fist.png',
+		size: [1, 1],
+		description: 'Your bare hands. Not very effective, but better than nothing.'
 	},
 	machete: {
 		displayName: 'Machete',
-		image: '/models/images/inventory/machete.png',
+		quickslotImage: '/models/images/inventory-quickslot/machete.png',
+		inventoryImage: '/models/images/inventory-expanded/machete.png',
+		size: [2, 1],
 		description:
 			'Sharp close-range weapon used primarly for cutting down bushes and trees. Can be used differently though.'
 	}
