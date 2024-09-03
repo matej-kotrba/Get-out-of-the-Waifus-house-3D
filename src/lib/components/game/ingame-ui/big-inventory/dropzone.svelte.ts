@@ -401,7 +401,6 @@ export class DragAndDropContext<T extends Params> {
 			node.style.height = options.pixelSize?.height + 'px';
 			nodeCopy.style.width = node.style.width;
 			nodeCopy.style.height = node.style.height;
-			console.log(node.style.width, nodeCopy.style.width);
 		}
 		resetPosition();
 		document.body.appendChild(nodeCopy);

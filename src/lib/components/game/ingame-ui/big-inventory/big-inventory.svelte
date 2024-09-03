@@ -94,11 +94,11 @@
 		<div>
 			{#each draggableItems as item}
 				<div
-					class="h-full w-full cursor-grab border border-white text-xl"
+					class="h-full w-full cursor-grab select-none border border-white text-xl"
 					style="width: {inventoryGridWidth
-						? item.size[0] * inventoryGridWidth + 'px'
+						? item.size[0] * inventoryGridWidth - 2 - 4 + 'px'
 						: 'auto'}; height: {inventoryGridWidth
-						? item.size[1] * inventoryGridWidth + 'px'
+						? item.size[1] * inventoryGridWidth - 2 - 4 + 'px'
 						: 'auto'}"
 					use:draggable={{
 						item: { name: item.name },
