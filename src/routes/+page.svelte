@@ -27,6 +27,7 @@
 	import player from '$lib/game/characters/player/Player.svelte';
 	import worldObjects from '$lib/game/general/WorldObjects';
 	import BigInventory from '$lib/components/game/ingame-ui/big-inventory/big-inventory.svelte';
+	import Screens from '$lib/components/game/Screens.svelte';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -192,6 +193,7 @@
 
 <Loading />
 <div class="fixed left-0 top-0 h-screen w-screen">
+	<Screens />
 	<SmallInventory />
 	<BigInventory />
 	<canvas class="h-screen w-screen" bind:this={canvas}></canvas>
