@@ -56,7 +56,7 @@ export class GroundItem {
 	}
 
 	public onPickup() {
-		if (player.inventory?.addItemToInventory(this.type)) {
+		if (player.inventory?.addItemToQuickSlot(this.type)) {
 			this.destroy();
 		}
 	}

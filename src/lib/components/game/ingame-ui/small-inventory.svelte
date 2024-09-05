@@ -6,9 +6,9 @@
 {#if player.inventory?.selectedSlot !== undefined}
 	<div
 		class="fixed bottom-0 right-0 flex items-end"
-		style="width: {player.inventory['items'].length * 70}px;"
+		style="width: {player.inventory['quickslotItems'].length * 70}px;"
 	>
-		{#each player.inventory['items'] as slot}
+		{#each player.inventory['quickslotItems'] as slot}
 			{#if slot.id}
 				{@const record = inventoryItemsRecord[slot.id]}
 				<div

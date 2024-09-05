@@ -1,10 +1,16 @@
 <script lang="ts">
-	import type { InventoryItem } from '$lib/game/item/inventory/items-record';
+	import {
+		inventoryItemsRecord,
+		type InventoryItem
+	} from '$lib/game/item/inventory/items-record';
 	import { DragAndDropContext } from './dropzone.svelte';
+	import player from '$lib/game/characters/player/Player.svelte';
+	import type { ItemTypeMethodsRecordType } from '$lib/game/item/ground/GroundItem';
 
 	type InventoryItemInInventory = InventoryItem & {
-		col: number;
-		row: number;
+		itemKey: ItemTypeMethodsRecordType;
+		colIdx: number;
+		rowIdx: number;
 	};
 
 	const INVENTORY_SIZE = 6;
@@ -15,19 +21,32 @@
 		return rect.width / INVENTORY_SIZE;
 	});
 
-	const draggableItemsInInventory: InventoryItemInInventory[] = [
-		{
-			displayName: 'Item 1',
-			size: [2, 1],
-			quickslotImage: '/models/images/inventory-quickslot/machete.png',
-			inventoryImage: '/models/images/inventory-expanded/machete.png',
-			col: 1,
-			row: 2
-		}
-	];
+	const draggableItemsInInventory: InventoryItemInInventory[] = player.inventory
+		? player.inventory?.inventoryItems.map((item) => {
+				return {
+					...item,
+					...inventoryItemsRecord[item.id],
+					itemKey: item.id as ItemTypeMethodsRecordType
+				};
+			})
+		: [];
 
-	const draggableItemsOnGround: InventoryItem[] = [
+	// [
+	// 	{
+	// 		displayName: 'Item 1',
+	// 		size: [2, 1],
+	// 		quickslotImage: '/models/images/inventory-quickslot/machete.png',
+	// 		inventoryImage: '/models/images/inventory-expanded/machete.png',
+	// 		colIdx: 1,
+	// 		rowIdx: 2
+	// 	}
+	// ];
+
+	const draggableItemsOnGround: (InventoryItem & {
+		itemKey: ItemTypeMethodsRecordType;
+	})[] = [
 		{
+			itemKey: 'machete',
 			displayName: 'Item 1',
 			size: [2, 1],
 			quickslotImage: '/models/images/inventory-quickslot/machete.png',
@@ -36,14 +55,15 @@
 	];
 
 	const context = new DragAndDropContext<{
+		id: ItemTypeMethodsRecordType;
 		name: string;
 	}>(
 		draggableItemsInInventory.map((item) => {
 			return {
-				id: `${item.row}${item.col}`,
+				id: `${item.rowIdx}${item.colIdx}`,
 				size: item.size,
 				relatesTo: undefined,
-				item: { name: item.displayName }
+				item: { name: item.displayName, id: item.itemKey }
 			};
 		}),
 		INVENTORY_SIZE
@@ -63,7 +83,17 @@
 
 	$effect(() => {
 		context.draggedNode;
-		console.log('SVELTE', context.items);
+		player.inventory?.setInventoryItems(
+			context.items
+				.filter((item) => Boolean(item.item))
+				.map((item) => {
+					return {
+						colIdx: Number(item.id[1]),
+						rowIdx: Number(item.id[0]),
+						id: item.item!.id
+					};
+				})
+		);
 	});
 </script>
 
@@ -85,7 +115,7 @@
 							(item) => item.id === `${idxRow}${idxCol}`
 						)?.size}
 						{@const item = draggableItemsInInventory.find(
-							(item) => item.col === idxCol && item.row === idxRow
+							(item) => item.colIdx === idxCol && item.rowIdx === idxRow
 						)}
 						<div
 							use:dropzone={{
@@ -113,7 +143,7 @@
 										: 'auto'}"
 									use:draggable={{
 										id: `${idxRow}${idxCol}`,
-										item: { name: item.displayName },
+										item: { name: item.displayName, id: item.itemKey },
 										originalNodeClassesOnDrag: ['opacity-0'],
 										pixelSize: inventoryGridWidth
 											? {
@@ -154,7 +184,7 @@
 							'px'
 						: 'auto'}"
 					use:draggable={{
-						item: { name: item.displayName },
+						item: { name: item.displayName, id: item.itemKey },
 						originalNodeClassesOnDrag: ['opacity-0'],
 						pixelSize: inventoryGridWidth
 							? {

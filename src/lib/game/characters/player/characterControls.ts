@@ -193,7 +193,7 @@ export class CharacterControls {
 			playerRightHand.remove(this.itemInHand);
 		}
 
-		const item = player.inventory?.selectedItem;
+		const item = player.inventory?.quickSlotSelectedItem;
 		if (!item?.id || item.id === EMPTY_HAND) {
 			this.itemInHand = undefined;
 			this.addBlockingAnimation('equipStand', { reversed: true });
