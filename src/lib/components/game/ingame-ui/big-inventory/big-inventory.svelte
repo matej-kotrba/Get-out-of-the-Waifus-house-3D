@@ -48,7 +48,7 @@
 		}),
 		INVENTORY_SIZE
 	);
-	const { draggable, draggedNode, dropzone, items } = context.get();
+	const { draggable, dropzone } = context.get();
 
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))
@@ -62,7 +62,8 @@
 	}
 
 	$effect(() => {
-		console.log(items);
+		context.draggedNode;
+		console.log('SVELTE', context.items);
 	});
 </script>
 
@@ -111,6 +112,7 @@
 											) + 'px'
 										: 'auto'}"
 									use:draggable={{
+										id: `${idxRow}${idxCol}`,
 										item: { name: item.displayName },
 										originalNodeClassesOnDrag: ['opacity-0'],
 										pixelSize: inventoryGridWidth

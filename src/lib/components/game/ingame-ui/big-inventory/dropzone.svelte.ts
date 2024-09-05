@@ -41,7 +41,7 @@ type DraggedNode<T extends Params> = {
 export class DragAndDropContext<T extends Params> {
 	#items: Item<T>[] = $state([]);
 	#nodes: HTMLElement[] = [];
-	#draggedNode: DraggedNode<T> | null = null;
+	#draggedNode: DraggedNode<T> | null = $state(null);
 	#rowSize: number;
 
 	constructor(itemsTemp: Item<T>[], rowSize: number) {
@@ -54,26 +54,20 @@ export class DragAndDropContext<T extends Params> {
 			const rect = this.#draggedNode.element.getBoundingClientRect();
 			this.#draggedNode.element.style.transform = `translate(${x - rect.width / 2}px, ${y - rect.height / 2}px)`;
 		});
-
-		$effect(() => {
-			console.log(this.#items);
-		});
 	}
 
 	public get items() {
 		return this.#items;
 	}
 
+	public get draggedNode() {
+		return this.#draggedNode;
+	}
+
 	public get() {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const self = this;
 		return {
 			dropzone: this.dropzone,
-			draggable: this.draggable,
-			draggedNode: this.#draggedNode,
-			get items(): Item<T>[] {
-				return self.#items;
-			}
+			draggable: this.draggable
 		};
 	}
 
@@ -399,21 +393,32 @@ export class DragAndDropContext<T extends Params> {
 			const itemInItems = this.#items.find((item) => item.id === options.id);
 			if (options.id && itemInItems) {
 				for (
-					let i = Number(options.id[1]);
-					i < Number(options.id[1]) + options.size[1];
+					let i = Number(options.id[0]);
+					i < Number(options.id[0]) + options.size[1];
 					i++
 				) {
 					for (
-						let j = Number(options.id[0]);
-						j < Number(options.id[0]) + options.size[0];
+						let j = Number(options.id[1]);
+						j < Number(options.id[1]) + options.size[0];
 						j++
 					) {
-						console.log(i, j);
-						if (i === Number(options.id[1]) && j === Number(options.id[0]))
+						if (i === Number(options.id[0]) && j === Number(options.id[1]))
 							continue;
-						const idx = this.#items.indexOf(itemInItems);
-						if (!idx) {
-							this.#items = [...this.#items, { ...itemInItems, size: [1, 1] }];
+						const relatingItem = this.#items.find(
+							(item) => item.id === `${i}${j}`
+						);
+						if (relatingItem) {
+							const idx = this.#items.indexOf(relatingItem);
+							this.#items[idx] = {
+								...relatingItem,
+								relatesTo: node,
+								size: [1, 1]
+							};
+						} else {
+							this.#items = [
+								...this.#items,
+								{ id: `${i}${j}`, relatesTo: node, size: [1, 1] }
+							];
 						}
 					}
 				}
@@ -445,8 +450,6 @@ export class DragAndDropContext<T extends Params> {
 
 		node.addEventListener('mousedown', onMousedown);
 		window.addEventListener('mouseup', onMouseup);
-
-		console.log(this.#items);
 
 		return {
 			destroy() {
