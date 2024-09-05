@@ -431,7 +431,7 @@ export class DragAndDropContext<T extends Params> {
 		const nodeCopy = node.cloneNode(true) as HTMLElement;
 		nodeCopy.style.cursor = 'grab';
 		nodeCopy.style.position = 'absolute';
-		nodeCopy.style.zIndex = '1000';
+		nodeCopy.style.zIndex = '100';
 		nodeCopy.style.pointerEvents = 'none';
 		nodeCopy.style.opacity = '0';
 		nodeCopy.style.transition = 'transform 0.05s ease, opacity 0.1s';

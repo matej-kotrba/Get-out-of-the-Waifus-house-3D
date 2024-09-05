@@ -97,120 +97,114 @@
 	});
 </script>
 
-<section
-	class="absolute inset-0 bg-[#00000055] p-8"
+<div
+	class="inventory-split h-full w-full rounded-2xl border-8 border-indigo-900 bg-indigo-600"
 	style="--inventory-size: {INVENTORY_SIZE};"
 >
-	<div
-		class="inventory-split h-full w-full rounded-2xl border-8 border-indigo-900 bg-indigo-600"
-	>
-		<div bind:this={inventoryGrid} class="relative h-fit max-w-[50rem]">
-			<div class="inventory-split__tiles aspect-square p-2">
-				{#each boardGrid as col, idxRow (idxRow)}
-					{#each col as square, idxCol (idxCol)}
-						{@const isRelated = context.items.find(
-							(item) => item.id === `${idxRow}${idxCol}`
-						)?.relatesTo}
-						{@const size = context.items.find(
-							(item) => item.id === `${idxRow}${idxCol}`
-						)?.size}
-						{@const item = draggableItemsInInventory.find(
-							(item) => item.colIdx === idxCol && item.rowIdx === idxRow
-						)}
-						<div
-							use:dropzone={{
-								id: `${idxRow}${idxCol}`,
-								addClassesOnDragStart: ['!border-yellow-500'],
-								itemsInDropzoneLimit: 1,
-								onDragEnterClasses: ['bg-pink-600']
-							}}
-							class="h-full w-full select-none border-2 border-slate-400 bg-pink-500 duration-100"
-							style={`${isRelated ? 'display: none;' : ''};${size ? `grid-column: span ${size[0]}; grid-row: span ${size[1]}` : ''}`}
-						>
-							{#if item}
-								<div
-									class="h-full w-full cursor-grab select-none border border-white text-xl"
-									style="width: {inventoryGridWidth
-										? getTileSizeExcludingBorders(
-												item.size[0],
-												inventoryGridWidth
-											) + 'px'
-										: 'auto'}; height: {inventoryGridWidth
-										? getTileSizeExcludingBorders(
-												item.size[1],
-												inventoryGridWidth
-											) + 'px'
-										: 'auto'}"
-									use:draggable={{
-										id: `${idxRow}${idxCol}`,
-										item: { name: item.displayName, id: item.itemKey },
-										originalNodeClassesOnDrag: ['opacity-0'],
-										pixelSize: inventoryGridWidth
-											? {
-													width: getTileSizeExcludingBorders(
-														item.size[0],
-														inventoryGridWidth
-													),
-													height: getTileSizeExcludingBorders(
-														item.size[1],
-														inventoryGridWidth
-													)
-												}
-											: undefined,
-										size: item.size
-									}}
-								>
-									<img
-										src={item.inventoryImage}
-										alt={item.displayName}
-										class="pointer-events-none h-full w-full object-cover"
-									/>
-								</div>
-							{/if}
-						</div>
-					{/each}
+	<div bind:this={inventoryGrid} class="relative h-fit max-w-[50rem]">
+		<div class="inventory-split__tiles aspect-square p-2">
+			{#each boardGrid as col, idxRow (idxRow)}
+				{#each col as square, idxCol (idxCol)}
+					{@const isRelated = context.items.find(
+						(item) => item.id === `${idxRow}${idxCol}`
+					)?.relatesTo}
+					{@const size = context.items.find(
+						(item) => item.id === `${idxRow}${idxCol}`
+					)?.size}
+					{@const item = draggableItemsInInventory.find(
+						(item) => item.colIdx === idxCol && item.rowIdx === idxRow
+					)}
+					<div
+						use:dropzone={{
+							id: `${idxRow}${idxCol}`,
+							addClassesOnDragStart: ['!border-yellow-500'],
+							itemsInDropzoneLimit: 1,
+							onDragEnterClasses: ['bg-pink-600']
+						}}
+						class="h-full w-full select-none border-2 border-slate-400 bg-pink-500 duration-100"
+						style={`${isRelated ? 'display: none;' : ''};${size ? `grid-column: span ${size[0]}; grid-row: span ${size[1]}` : ''}`}
+					>
+						{#if item}
+							<div
+								class="h-full w-full cursor-grab select-none border border-white text-xl"
+								style="width: {inventoryGridWidth
+									? getTileSizeExcludingBorders(
+											item.size[0],
+											inventoryGridWidth
+										) + 'px'
+									: 'auto'}; height: {inventoryGridWidth
+									? getTileSizeExcludingBorders(
+											item.size[1],
+											inventoryGridWidth
+										) + 'px'
+									: 'auto'}"
+								use:draggable={{
+									id: `${idxRow}${idxCol}`,
+									item: { name: item.displayName, id: item.itemKey },
+									originalNodeClassesOnDrag: ['opacity-0'],
+									pixelSize: inventoryGridWidth
+										? {
+												width: getTileSizeExcludingBorders(
+													item.size[0],
+													inventoryGridWidth
+												),
+												height: getTileSizeExcludingBorders(
+													item.size[1],
+													inventoryGridWidth
+												)
+											}
+										: undefined,
+									size: item.size
+								}}
+							>
+								<img
+									src={item.inventoryImage}
+									alt={item.displayName}
+									class="pointer-events-none h-full w-full object-cover"
+								/>
+							</div>
+						{/if}
+					</div>
 				{/each}
-			</div>
-		</div>
-		<div>
-			{#each draggableItemsOnGround as item}
-				<div
-					class="h-full w-full cursor-grab select-none border border-white text-xl"
-					style="width: {inventoryGridWidth
-						? getTileSizeExcludingBorders(item.size[0], inventoryGridWidth) +
-							'px'
-						: 'auto'}; height: {inventoryGridWidth
-						? getTileSizeExcludingBorders(item.size[1], inventoryGridWidth) +
-							'px'
-						: 'auto'}"
-					use:draggable={{
-						item: { name: item.displayName, id: item.itemKey },
-						originalNodeClassesOnDrag: ['opacity-0'],
-						pixelSize: inventoryGridWidth
-							? {
-									width: getTileSizeExcludingBorders(
-										item.size[0],
-										inventoryGridWidth
-									),
-									height: getTileSizeExcludingBorders(
-										item.size[1],
-										inventoryGridWidth
-									)
-								}
-							: undefined,
-						size: item.size
-					}}
-				>
-					<img
-						src={item.inventoryImage}
-						alt={item.displayName}
-						class="pointer-events-none h-full w-full object-cover"
-					/>
-				</div>
 			{/each}
 		</div>
 	</div>
-</section>
+	<div>
+		{#each draggableItemsOnGround as item}
+			<div
+				class="h-full w-full cursor-grab select-none border border-white text-xl"
+				style="width: {inventoryGridWidth
+					? getTileSizeExcludingBorders(item.size[0], inventoryGridWidth) + 'px'
+					: 'auto'}; height: {inventoryGridWidth
+					? getTileSizeExcludingBorders(item.size[1], inventoryGridWidth) + 'px'
+					: 'auto'}"
+				use:draggable={{
+					item: { name: item.displayName, id: item.itemKey },
+					originalNodeClassesOnDrag: ['opacity-0'],
+					pixelSize: inventoryGridWidth
+						? {
+								width: getTileSizeExcludingBorders(
+									item.size[0],
+									inventoryGridWidth
+								),
+								height: getTileSizeExcludingBorders(
+									item.size[1],
+									inventoryGridWidth
+								)
+							}
+						: undefined,
+					size: item.size
+				}}
+			>
+				<img
+					src={item.inventoryImage}
+					alt={item.displayName}
+					class="pointer-events-none h-full w-full object-cover"
+				/>
+			</div>
+		{/each}
+	</div>
+</div>
 
 <style>
 	.inventory-split {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import LandingAnimation from '$lib/components/main-menu/landing-animation.svelte';
 	import Menu from '$lib/components/main-menu/menu.svelte';
-	import SmallInventory from '$lib/components/game/ingame-ui/small-inventory.svelte';
+	import QuickSlot from '$lib/components/game/ingame-ui/quickslot.svelte';
 	import {
 		CharacterControls,
 		type CharacterAction,
@@ -194,7 +194,7 @@
 <Loading />
 <div class="fixed left-0 top-0 h-screen w-screen">
 	<Screens />
-	<SmallInventory />
+	<QuickSlot />
 	<canvas class="h-screen w-screen" bind:this={canvas}></canvas>
 </div>
 

@@ -3,6 +3,10 @@ import updateService from './UpdateService';
 export type KeypressListenerKeys = Record<string, boolean>;
 type SubscribeFn = (event: Event) => void;
 
+type SubscribeOptions = {
+	dontStopOnGamePause: boolean;
+};
+
 class ListenerService {
 	#keys: KeypressListenerKeys = {};
 
@@ -22,12 +26,16 @@ class ListenerService {
 		return this.#keys;
 	}
 
-	public subscribe(event: keyof GlobalEventHandlersEventMap, fn: SubscribeFn) {
+	public subscribe(
+		event: keyof GlobalEventHandlersEventMap,
+		fn: SubscribeFn,
+		options: SubscribeOptions = { dontStopOnGamePause: false }
+	) {
 		if (!this.#listenerSubscribers.has(event)) {
 			this.#listenerSubscribers.set(event, []);
 		}
 		this.#listenerSubscribers.get(event)?.push(fn);
-		this.updateListeners();
+		this.updateListeners(options);
 	}
 
 	public unsubscribe(
@@ -52,23 +60,27 @@ class ListenerService {
 
 	private updateSubscribers(
 		data: Event,
-		event: keyof GlobalEventHandlersEventMap
+		event: keyof GlobalEventHandlersEventMap,
+		options: SubscribeOptions
 	) {
-		if (!updateService.isGameRunning()) return;
+		if (options.dontStopOnGamePause === false && !updateService.isGameRunning())
+			return;
 
 		const listeners = this.#listenerSubscribers.get(event);
 		if (!listeners) return;
 		listeners.forEach((fn) => fn(data));
 	}
 
-	private updateListeners() {
+	private updateListeners(options: SubscribeOptions) {
 		// Get all events which are in listenerSubscribers but not in listeners
 		const eventsToAdd = Array.from(this.#listenerSubscribers.keys()).filter(
 			(event) => !this.#listeners.has(event)
 		);
 
 		eventsToAdd.forEach((event) => {
-			this.#listeners.set(event, (e) => this.updateSubscribers(e, event));
+			this.#listeners.set(event, (e) =>
+				this.updateSubscribers(e, event, options)
+			);
 			window.addEventListener(event, this.#listeners.get(event)!);
 		});
 	}

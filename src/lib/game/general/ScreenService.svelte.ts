@@ -12,7 +12,9 @@ class ScreenService {
 	});
 
 	constructor() {
-		listenerService.subscribe('keypress', this.onKeyDown.bind(this));
+		listenerService.subscribe('keypress', this.onKeyDown.bind(this), {
+			dontStopOnGamePause: true
+		});
 	}
 
 	public getScreenToggleStatus(screen: Screen) {
