@@ -1,6 +1,6 @@
 import listenerService from './ListenerService';
 
-type Screen = 'Inventory';
+export type Screen = 'Inventory';
 
 const screenToggleKeys: Record<KeyboardEvent['key'], Screen> = {
 	i: 'Inventory'

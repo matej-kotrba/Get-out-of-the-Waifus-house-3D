@@ -54,6 +54,10 @@ export class DragAndDropContext<T extends Params> {
 			const rect = this.#draggedNode.element.getBoundingClientRect();
 			this.#draggedNode.element.style.transform = `translate(${x - rect.width / 2}px, ${y - rect.height / 2}px)`;
 		});
+
+		$effect(() => {
+			console.log(this.#items);
+		});
 	}
 
 	public get items() {
@@ -188,8 +192,12 @@ export class DragAndDropContext<T extends Params> {
 							if (id) {
 								const item = this.#items.find((item) => item.id === id);
 								if (item) {
-									item.relatesTo = undefined;
-									item.size = [1, 1];
+									const index = this.#items.indexOf(item);
+									this.#items[index] = {
+										...item,
+										relatesTo: undefined,
+										size: [1, 1]
+									};
 								}
 							}
 						}
@@ -289,7 +297,8 @@ export class DragAndDropContext<T extends Params> {
 			for (const { id, node } of existingItemsToBeEdited) {
 				const item = this.#items.find((item) => item.id === id);
 				if (item) {
-					item.relatesTo = node;
+					const index = this.#items.indexOf(item);
+					this.#items[index] = { ...item, relatesTo: node };
 				}
 			}
 		};
@@ -386,6 +395,31 @@ export class DragAndDropContext<T extends Params> {
 			this.#draggedNode = null;
 		};
 
+		const initializeRelatedItemsIfInGrid = () => {
+			const itemInItems = this.#items.find((item) => item.id === options.id);
+			if (options.id && itemInItems) {
+				for (
+					let i = Number(options.id[1]);
+					i < Number(options.id[1]) + options.size[1];
+					i++
+				) {
+					for (
+						let j = Number(options.id[0]);
+						j < Number(options.id[0]) + options.size[0];
+						j++
+					) {
+						console.log(i, j);
+						if (i === Number(options.id[1]) && j === Number(options.id[0]))
+							continue;
+						const idx = this.#items.indexOf(itemInItems);
+						if (!idx) {
+							this.#items = [...this.#items, { ...itemInItems, size: [1, 1] }];
+						}
+					}
+				}
+			}
+		};
+
 		node.style.cursor = 'grab';
 		node.style.userSelect = 'none';
 
@@ -403,6 +437,7 @@ export class DragAndDropContext<T extends Params> {
 			nodeCopy.style.height = node.style.height;
 		}
 		resetPosition();
+		initializeRelatedItemsIfInGrid();
 		document.body.appendChild(nodeCopy);
 		if (options.id) {
 			addItemToDropzoneItemById(options.id, options.item, options.size);
@@ -410,6 +445,8 @@ export class DragAndDropContext<T extends Params> {
 
 		node.addEventListener('mousedown', onMousedown);
 		window.addEventListener('mouseup', onMouseup);
+
+		console.log(this.#items);
 
 		return {
 			destroy() {

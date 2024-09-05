@@ -2,7 +2,12 @@
 	import type { InventoryItem } from '$lib/game/item/inventory/items-record';
 	import { DragAndDropContext } from './dropzone.svelte';
 
-	const INVENTORY_SIZE = 8;
+	type InventoryItemInInventory = InventoryItem & {
+		col: number;
+		row: number;
+	};
+
+	const INVENTORY_SIZE = 6;
 	let inventoryGrid: HTMLElement | null = $state(null);
 	let inventoryGridWidth = $derived.by(() => {
 		if (!inventoryGrid) return;
@@ -10,21 +15,40 @@
 		return rect.width / INVENTORY_SIZE;
 	});
 
-	const draggableItemsInInventory: InventoryItem[] = $state([]);
+	const draggableItemsInInventory: InventoryItemInInventory[] = [
+		{
+			displayName: 'Item 1',
+			size: [2, 1],
+			quickslotImage: '/models/images/inventory-quickslot/machete.png',
+			inventoryImage: '/models/images/inventory-expanded/machete.png',
+			col: 1,
+			row: 2
+		}
+	];
 
-	const draggableItemsOnGround: InventoryItem[] = $state([
+	const draggableItemsOnGround: InventoryItem[] = [
 		{
 			displayName: 'Item 1',
 			size: [2, 1],
 			quickslotImage: '/models/images/inventory-quickslot/machete.png',
 			inventoryImage: '/models/images/inventory-expanded/machete.png'
 		}
-	]);
+	];
 
 	const context = new DragAndDropContext<{
 		name: string;
-	}>([], INVENTORY_SIZE);
-	const { draggable, draggedNode, dropzone } = context.get();
+	}>(
+		draggableItemsInInventory.map((item) => {
+			return {
+				id: `${item.row}${item.col}`,
+				size: item.size,
+				relatesTo: undefined,
+				item: { name: item.displayName }
+			};
+		}),
+		INVENTORY_SIZE
+	);
+	const { draggable, draggedNode, dropzone, items } = context.get();
 
 	const boardGrid = Array.from({ length: INVENTORY_SIZE }, (_, i) =>
 		Array.from({ length: INVENTORY_SIZE }, (_, j) => ({ id: i * 15 + j }))
@@ -36,6 +60,10 @@
 	) {
 		return sizeMultplier * inventoryGridWidth - 2 - 4;
 	}
+
+	$effect(() => {
+		console.log(items);
+	});
 </script>
 
 <section
@@ -47,14 +75,17 @@
 	>
 		<div bind:this={inventoryGrid} class="relative h-fit max-w-[50rem]">
 			<div class="inventory-split__tiles aspect-square p-2">
-				{#each boardGrid as col, idxRow}
-					{#each col as square, idxCol}
+				{#each boardGrid as col, idxRow (idxRow)}
+					{#each col as square, idxCol (idxCol)}
 						{@const isRelated = context.items.find(
 							(item) => item.id === `${idxRow}${idxCol}`
 						)?.relatesTo}
 						{@const size = context.items.find(
 							(item) => item.id === `${idxRow}${idxCol}`
 						)?.size}
+						{@const item = draggableItemsInInventory.find(
+							(item) => item.col === idxCol && item.row === idxRow
+						)}
 						<div
 							use:dropzone={{
 								id: `${idxRow}${idxCol}`,
@@ -64,7 +95,47 @@
 							}}
 							class="h-full w-full select-none border-2 border-slate-400 bg-pink-500 duration-100"
 							style={`${isRelated ? 'display: none;' : ''};${size ? `grid-column: span ${size[0]}; grid-row: span ${size[1]}` : ''}`}
-						></div>
+						>
+							{#if item}
+								<div
+									class="h-full w-full cursor-grab select-none border border-white text-xl"
+									style="width: {inventoryGridWidth
+										? getTileSizeExcludingBorders(
+												item.size[0],
+												inventoryGridWidth
+											) + 'px'
+										: 'auto'}; height: {inventoryGridWidth
+										? getTileSizeExcludingBorders(
+												item.size[1],
+												inventoryGridWidth
+											) + 'px'
+										: 'auto'}"
+									use:draggable={{
+										item: { name: item.displayName },
+										originalNodeClassesOnDrag: ['opacity-0'],
+										pixelSize: inventoryGridWidth
+											? {
+													width: getTileSizeExcludingBorders(
+														item.size[0],
+														inventoryGridWidth
+													),
+													height: getTileSizeExcludingBorders(
+														item.size[1],
+														inventoryGridWidth
+													)
+												}
+											: undefined,
+										size: item.size
+									}}
+								>
+									<img
+										src={item.inventoryImage}
+										alt={item.displayName}
+										class="pointer-events-none h-full w-full object-cover"
+									/>
+								</div>
+							{/if}
+						</div>
 					{/each}
 				{/each}
 			</div>

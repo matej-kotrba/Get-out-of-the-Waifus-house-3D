@@ -195,7 +195,6 @@
 <div class="fixed left-0 top-0 h-screen w-screen">
 	<Screens />
 	<SmallInventory />
-	<BigInventory />
 	<canvas class="h-screen w-screen" bind:this={canvas}></canvas>
 </div>
 
