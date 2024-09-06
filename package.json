@@ -38,10 +38,13 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@dimforge/rapier3d": "^0.14.0",
 		"clsx": "^2.1.1",
 		"dat.gui": "^0.7.9",
 		"tailwind-merge": "^2.4.0",
 		"tailwind-variants": "^0.2.1",
-		"three": "^0.167.1"
+		"three": "^0.167.1",
+		"vite-plugin-top-level-await": "^1.4.4",
+		"vite-plugin-wasm": "^3.3.0"
 	}
 }
