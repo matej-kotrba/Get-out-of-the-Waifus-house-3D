@@ -49,6 +49,7 @@
 				player.characterControls?.update(delta, listenerMachine.keys);
 				renderer.render(scene, camera);
 				cssRenderer.render(scene, camera);
+				world?.step();
 			});
 			updateService.start();
 

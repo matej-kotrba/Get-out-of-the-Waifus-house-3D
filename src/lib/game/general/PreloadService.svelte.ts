@@ -6,9 +6,22 @@ import {
 } from '../item/ground/GroundItem';
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
-export type PreloadedParts = 'items' | 'animations' | 'models' | 'hdris';
+export type PreloadedParts =
+	| 'items'
+	| 'animations'
+	| 'models'
+	| 'hdris'
+	| 'textures';
+
+type PreloadedTexture = {
+	diffuse: THREE.Texture;
+	normal: THREE.Texture;
+	displacement: THREE.Texture;
+	arm: THREE.Texture;
+};
 
 export const itemsToPreload: ItemTypeMethodsRecordType[] = ['machete'] as const;
+
 export const animationsToPreload = [
 	'idle',
 	'walk',
@@ -17,7 +30,16 @@ export const animationsToPreload = [
 	'meleeAttack',
 	'equipStand'
 ] as const;
+
 export const hdrisToPreload = ['forest'] as const;
+
+export const texturesToPreload = ['leafy_grass'] as const;
+const textureMapsNamingsToPreload = {
+	'diff.jpg': 'diffuse',
+	'nor.jpg': 'normal',
+	'disp.png': 'displacement',
+	'arm.jpg': 'arm'
+} as const;
 
 export type ItemsToPreloadOptions = (typeof itemsToPreload)[number];
 export type AnimationsToPreloadOptions = (typeof animationsToPreload)[number];
@@ -31,7 +53,8 @@ class PreloadService {
 		items: false,
 		animations: false,
 		models: false,
-		hdris: false
+		hdris: false,
+		textures: false
 	});
 
 	// Preloading items data
@@ -50,6 +73,10 @@ class PreloadService {
 	// Preloading HDRIs
 	#hdrisToPreload = hdrisToPreload;
 	#hdrisLoaded: Map<string, THREE.Texture> = new Map();
+
+	// Preloading textures
+	#texturesToPreload = texturesToPreload;
+	#texturesLoaded: Map<string, PreloadedTexture> = new Map();
 
 	// Subscriber properties
 	#callbacks: (() => void)[] = [];
@@ -88,6 +115,10 @@ class PreloadService {
 		return this.#hdrisLoaded.get(key);
 	}
 
+	public getLoadedTexture(key: string) {
+		return this.#texturesLoaded.get(key);
+	}
+
 	private async preload() {
 		THREE.Cache.enabled = true;
 		await this.preloadHandler(this.preloadModels);
@@ -96,7 +127,8 @@ class PreloadService {
 		await Promise.all([
 			this.preloadHandler(this.preloadItemModels),
 			this.preloadHandler(this.preloadAnimations),
-			this.preloadHandler(this.preloadHDRIs)
+			this.preloadHandler(this.preloadHDRIs),
+			this.preloadHandler(this.preloadTextures)
 		]);
 		// Enable it again so it can be used later
 		THREE.Cache.enabled = true;
@@ -170,6 +202,31 @@ class PreloadService {
 				texture.mapping = THREE.EquirectangularReflectionMapping;
 				this.#hdrisLoaded.set(item, texture);
 			});
+		});
+	}
+
+	private preloadTextures(res: PromiseResponse) {
+		const loadingManager = new THREE.LoadingManager();
+		const loader = new THREE.TextureLoader(loadingManager);
+
+		loadingManager.onLoad = () => {
+			preloadMachine.preloadedParts['textures'] = true;
+			res('done');
+		};
+
+		this.#texturesToPreload.forEach((item) => {
+			const loadedData: {
+				[Key in keyof PreloadedTexture]?: PreloadedTexture[Key];
+			} = {};
+			Object.entries(textureMapsNamingsToPreload).forEach(
+				([filename, mapName]) => {
+					console.log(filename);
+					loader.load(`textures/${item}/${filename}`, (texture) => {
+						loadedData[mapName] = texture;
+					});
+				}
+			);
+			this.#texturesLoaded.set(item, loadedData as PreloadedTexture);
 		});
 	}
 

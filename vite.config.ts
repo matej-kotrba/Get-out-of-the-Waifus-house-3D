@@ -6,6 +6,6 @@ import wasm from 'vite-plugin-wasm';
 export default defineConfig({
 	plugins: [sveltekit(), wasm(), topLevelAwait()],
 	server: {
-		hmr: true
+		hmr: false
 	}
 });
