@@ -21,6 +21,7 @@
 		getRapierProperties,
 		initializeRapier
 	} from '$lib/game/physics/rapier';
+	import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -31,17 +32,7 @@
 			await initializeRapier();
 			const { RAPIER, world } = getRapierProperties();
 
-			const plane = new THREE.PlaneGeometry(10, 10);
-			const material = new THREE.MeshBasicMaterial({
-				color: 0xaa4400,
-				side: THREE.DoubleSide
-			});
-			const planeMesh = new THREE.Mesh(plane, material);
-			planeMesh.receiveShadow = true;
-			planeMesh.rotation.x = Math.PI / 2;
-			scene.add(planeMesh);
-
-			orbit.position.copy(planeMesh.position);
+			orbit.position.setScalar(0);
 			orbit.add(camera);
 			scene.add(orbit);
 
@@ -72,6 +63,98 @@
 						new THREE.Vector3(0, 1, 2)
 					)
 				);
+
+				if (RAPIER && world) {
+					// const plane = new THREE.PlaneGeometry(10, 10, 400, 400);
+					// const material = new THREE.MeshStandardMaterial({
+					// 	side: THREE.DoubleSide,
+					// 	transparent: true,
+					// 	...preloadMachine.getLoadedTexture('leafy_grass'),
+					// 	displacementScale: 0.2
+					// });
+					// const planeMesh = new THREE.Mesh(plane, material);
+					// planeMesh.receiveShadow = true;
+					// planeMesh.rotation.x = Math.PI / 2;
+					// scene.add(planeMesh);
+
+					const loader = new GLTFLoader();
+					loader.load('models/ground.glb', (gltf) => {
+						const model = gltf.scene;
+						model.receiveShadow = true;
+						model.rotation.x = Math.PI / 2;
+						scene.add(model);
+
+						const modelSizes = new THREE.Box3()
+							.setFromObject(model)
+							.getSize(new THREE.Vector3());
+						console.log(modelSizes);
+
+						const box = new THREE.BoxGeometry(5, 5, 5);
+						const material = new THREE.MeshBasicMaterial({
+							color: 0x00ff00
+						});
+						const cube = new THREE.Mesh(box, material);
+						cube.position.setY(10);
+						scene.add(cube);
+						const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
+						const cubeRigidBody = world.createRigidBody(cubeBodyType);
+						const cubeColliderType = RAPIER.ColliderDesc.cuboid(2.5, 2.5, 2.5);
+						cubeRigidBody.setTranslation(new THREE.Vector3(0, 100, 0), true);
+						world.createCollider(cubeColliderType, cubeRigidBody);
+
+						const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
+
+						const bodyDesc = RAPIER.RigidBodyDesc.fixed();
+
+						const rigidBody = world.createRigidBody(bodyDesc);
+						const colliderType = RAPIER.ColliderDesc.cuboid(
+							modelSizes.x / 2,
+							modelSizes.y / 2,
+							modelSizes.z / 2
+						);
+						world.createCollider(colliderType, rigidBody);
+
+						const couple = { rigid: rigidBody, mesh: model };
+
+						updateService.subscribe(() => {
+							const cubePosition = couple.rigid.translation();
+							const cubeRotation = couple.rigid.rotation();
+							cubeCouple.mesh.position.set(
+								cubePosition.x,
+								cubePosition.y,
+								cubePosition.z
+							);
+							cubeCouple.mesh.rotation.set(
+								cubeRotation.x,
+								cubeRotation.y,
+								cubeRotation.z
+							);
+
+							cubeCouple.mesh.setRotationFromQuaternion(
+								new THREE.Quaternion(
+									cubeRotation.x,
+									cubeRotation.y,
+									cubeRotation.z,
+									cubeRotation.w
+								)
+							);
+
+							const position = couple.rigid.translation();
+							const rotation = couple.rigid.rotation();
+							couple.mesh.position.set(position.x, position.y, position.z);
+							couple.mesh.rotation.set(rotation.x, rotation.y, rotation.z);
+
+							couple.mesh.setRotationFromQuaternion(
+								new THREE.Quaternion(
+									rotation.x,
+									rotation.y,
+									rotation.z,
+									rotation.w
+								)
+							);
+						});
+					});
+				}
 			});
 		}
 

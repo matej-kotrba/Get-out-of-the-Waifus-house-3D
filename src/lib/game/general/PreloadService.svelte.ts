@@ -13,13 +13,6 @@ export type PreloadedParts =
 	| 'hdris'
 	| 'textures';
 
-type PreloadedTexture = {
-	diffuse: THREE.Texture;
-	normal: THREE.Texture;
-	displacement: THREE.Texture;
-	arm: THREE.Texture;
-};
-
 export const itemsToPreload: ItemTypeMethodsRecordType[] = ['machete'] as const;
 
 export const animationsToPreload = [
@@ -35,11 +28,17 @@ export const hdrisToPreload = ['forest'] as const;
 
 export const texturesToPreload = ['leafy_grass'] as const;
 const textureMapsNamingsToPreload = {
-	'diff.jpg': 'diffuse',
-	'nor.jpg': 'normal',
-	'disp.png': 'displacement',
-	'arm.jpg': 'arm'
-} as const;
+	map: 'diff.jpg',
+	normalMap: 'nor.jpg',
+	displacementMap: 'disp.png',
+	roughnessMap: 'arm.jpg',
+	metalnessMap: 'arm.jpg',
+	aoMap: 'arm.jpg'
+};
+
+type PreloadedTexture = {
+	[Key in keyof typeof textureMapsNamingsToPreload]: THREE.Texture;
+};
 
 export type ItemsToPreloadOptions = (typeof itemsToPreload)[number];
 export type AnimationsToPreloadOptions = (typeof animationsToPreload)[number];
@@ -115,7 +114,7 @@ class PreloadService {
 		return this.#hdrisLoaded.get(key);
 	}
 
-	public getLoadedTexture(key: string) {
+	public getLoadedTexture(key: (typeof texturesToPreload)[number]) {
 		return this.#texturesLoaded.get(key);
 	}
 
@@ -219,10 +218,10 @@ class PreloadService {
 				[Key in keyof PreloadedTexture]?: PreloadedTexture[Key];
 			} = {};
 			Object.entries(textureMapsNamingsToPreload).forEach(
-				([filename, mapName]) => {
-					console.log(filename);
+				([mapName, filename]) => {
 					loader.load(`textures/${item}/${filename}`, (texture) => {
-						loadedData[mapName] = texture;
+						loadedData[mapName as keyof PreloadedTexture] = texture;
+						texture.colorSpace = THREE.SRGBColorSpace;
 					});
 				}
 			);
