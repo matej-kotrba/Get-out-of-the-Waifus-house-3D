@@ -81,7 +81,6 @@
 					loader.load('models/ground.glb', (gltf) => {
 						const model = gltf.scene;
 						model.receiveShadow = true;
-						model.rotation.x = Math.PI / 2;
 						scene.add(model);
 
 						const modelSizes = new THREE.Box3()
@@ -97,28 +96,64 @@
 						cube.position.setY(10);
 						scene.add(cube);
 						const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
+						cubeBodyType.setTranslation(0, 100, 0);
 						const cubeRigidBody = world.createRigidBody(cubeBodyType);
 						const cubeColliderType = RAPIER.ColliderDesc.cuboid(2.5, 2.5, 2.5);
-						cubeRigidBody.setTranslation(new THREE.Vector3(0, 100, 0), true);
 						world.createCollider(cubeColliderType, cubeRigidBody);
 
 						const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
 
+						let heights = [];
+						let sizeX;
+						let sizeZ;
+						let vertexCount = 0;
+						let numPointsX, numPointsZ;
+
+						model.traverse((child) => {
+							if (child.type === 'Mesh') {
+								const retyped = child as THREE.Mesh;
+								retyped.geometry.computeBoundingBox();
+								retyped.geometry.computeVertexNormals();
+
+								const position = retyped.geometry.attributes.position.array;
+								console.log(position);
+
+								const boundingBox = retyped.geometry.boundingBox;
+								if (boundingBox) {
+									sizeX = boundingBox.max.x - boundingBox.min.x;
+									sizeZ = boundingBox.max.z - boundingBox.min.z;
+
+									numPointsX = Math.round(Math.sqrt(vertexCount));
+									numPointsZ = Math.round(vertexCount / numPointsX);
+								}
+
+								for (let i = 0; i <= 840; ++i) {
+									for (let j = 0; j <= 840; ++j) {
+										heights.push(columsRows.get(j).get(i));
+									}
+								}
+							}
+						});
+
+						const heightArray = new Float32Array(heights);
+
 						const bodyDesc = RAPIER.RigidBodyDesc.fixed();
 
 						const rigidBody = world.createRigidBody(bodyDesc);
-						const colliderType = RAPIER.ColliderDesc.cuboid(
-							modelSizes.x / 2,
-							modelSizes.y / 2,
-							modelSizes.z / 2
+
+						const colliderType = RAPIER.ColliderDesc.heightfield(
+							numPointsX,
+							numPointsZ,
+							heightArray,
+							new THREE.Vector3(70, 3, 70)
 						);
 						world.createCollider(colliderType, rigidBody);
 
 						const couple = { rigid: rigidBody, mesh: model };
 
 						updateService.subscribe(() => {
-							const cubePosition = couple.rigid.translation();
-							const cubeRotation = couple.rigid.rotation();
+							const cubePosition = cubeCouple.rigid.translation();
+							const cubeRotation = cubeCouple.rigid.rotation();
 							cubeCouple.mesh.position.set(
 								cubePosition.x,
 								cubePosition.y,
