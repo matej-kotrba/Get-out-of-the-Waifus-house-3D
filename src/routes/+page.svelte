@@ -21,7 +21,6 @@
 		getRapierProperties,
 		initializeRapier
 	} from '$lib/game/physics/rapier';
-	import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -77,117 +76,127 @@
 					// planeMesh.rotation.x = Math.PI / 2;
 					// scene.add(planeMesh);
 
-					const loader = new GLTFLoader();
-					loader.load('models/ground.glb', (gltf) => {
-						const model = gltf.scene;
-						model.receiveShadow = true;
-						scene.add(model);
+					let heights: number[] = [];
 
-						const modelSizes = new THREE.Box3()
-							.setFromObject(model)
-							.getSize(new THREE.Vector3());
-						console.log(modelSizes);
+					const scale = { x: 50, z: 50, y: 5 };
+					const nsubdivs = 50;
+					// three plane
+					const threeFloor = new THREE.Mesh(
+						new THREE.PlaneGeometry(scale.x, scale.z, nsubdivs, nsubdivs),
+						new THREE.MeshStandardMaterial({
+							...preloadMachine.getLoadedTexture('leafy_grass'),
+							roughness: 0.6
+						})
+					);
+					threeFloor.rotateX(-Math.PI / 2);
+					threeFloor.receiveShadow = true;
+					threeFloor.castShadow = true;
+					scene.add(threeFloor);
 
-						const box = new THREE.BoxGeometry(5, 5, 5);
-						const material = new THREE.MeshBasicMaterial({
-							color: 0x00ff00
-						});
-						const cube = new THREE.Mesh(box, material);
-						cube.position.setY(10);
-						scene.add(cube);
-						const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
-						cubeBodyType.setTranslation(0, 100, 0);
-						const cubeRigidBody = world.createRigidBody(cubeBodyType);
-						const cubeColliderType = RAPIER.ColliderDesc.cuboid(2.5, 2.5, 2.5);
-						world.createCollider(cubeColliderType, cubeRigidBody);
-
-						const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
-
-						let heights = [];
-						let sizeX;
-						let sizeZ;
-						let vertexCount = 0;
-						let numPointsX, numPointsZ;
-
-						model.traverse((child) => {
-							if (child.type === 'Mesh') {
-								const retyped = child as THREE.Mesh;
-								retyped.geometry.computeBoundingBox();
-								retyped.geometry.computeVertexNormals();
-
-								const position = retyped.geometry.attributes.position.array;
-								console.log(position);
-
-								const boundingBox = retyped.geometry.boundingBox;
-								if (boundingBox) {
-									sizeX = boundingBox.max.x - boundingBox.min.x;
-									sizeZ = boundingBox.max.z - boundingBox.min.z;
-
-									numPointsX = Math.round(Math.sqrt(vertexCount));
-									numPointsZ = Math.round(vertexCount / numPointsX);
-								}
-
-								for (let i = 0; i <= 840; ++i) {
-									for (let j = 0; j <= 840; ++j) {
-										heights.push(columsRows.get(j).get(i));
-									}
-								}
-							}
-						});
-
-						const heightArray = new Float32Array(heights);
-
-						const bodyDesc = RAPIER.RigidBodyDesc.fixed();
-
-						const rigidBody = world.createRigidBody(bodyDesc);
-
-						const colliderType = RAPIER.ColliderDesc.heightfield(
-							numPointsX,
-							numPointsZ,
-							heightArray,
-							new THREE.Vector3(70, 3, 70)
+					// add height data to plane
+					const vertices = threeFloor.geometry.attributes.position.array;
+					const dx = scale.x / nsubdivs;
+					const dy = scale.z / nsubdivs;
+					// store height data in map column-row map
+					const columsRows = new Map();
+					for (let i = 0; i < vertices.length; i += 3) {
+						// translate into colum / row indices
+						let row = Math.floor(
+							Math.abs((vertices as any)[i] + scale.x / 2) / dx
 						);
-						world.createCollider(colliderType, rigidBody);
+						let column = Math.floor(
+							Math.abs((vertices as any)[i + 1] - scale.z / 2) / dy
+						);
+						// generate height for this column & row
+						const randomHeight = Math.random();
+						(vertices as any)[i + 2] = scale.y * randomHeight;
+						// store height
+						if (!columsRows.get(column)) {
+							columsRows.set(column, new Map());
+						}
+						columsRows.get(column).set(row, randomHeight);
+					}
+					threeFloor.geometry.computeVertexNormals();
 
-						const couple = { rigid: rigidBody, mesh: model };
+					// store height data into column-major-order matrix array
+					for (let i = 0; i <= nsubdivs; ++i) {
+						for (let j = 0; j <= nsubdivs; ++j) {
+							heights.push(columsRows.get(j).get(i));
+						}
+					}
 
-						updateService.subscribe(() => {
-							const cubePosition = cubeCouple.rigid.translation();
-							const cubeRotation = cubeCouple.rigid.rotation();
-							cubeCouple.mesh.position.set(
-								cubePosition.x,
-								cubePosition.y,
-								cubePosition.z
-							);
-							cubeCouple.mesh.rotation.set(
+					const heightArray = new Float32Array(heights);
+
+					const bodyDesc = RAPIER.RigidBodyDesc.fixed();
+
+					const rigidBody = world.createRigidBody(bodyDesc);
+
+					const colliderType = RAPIER.ColliderDesc.heightfield(
+						nsubdivs,
+						nsubdivs,
+						heightArray,
+						new THREE.Vector3(scale.x, scale.y, scale.z)
+					);
+					world.createCollider(colliderType, rigidBody);
+
+					const couple = { rigid: rigidBody, mesh: threeFloor };
+
+					const modelSizes = new THREE.Box3()
+						.setFromObject(threeFloor)
+						.getSize(new THREE.Vector3());
+					console.log(modelSizes);
+
+					const box = new THREE.BoxGeometry(5, 5, 5);
+					const material = new THREE.MeshBasicMaterial({
+						color: 0x00ff00
+					});
+					const cube = new THREE.Mesh(box, material);
+					cube.position.setY(10);
+					scene.add(cube);
+					const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
+					cubeBodyType.setTranslation(0, 100, 0);
+					const cubeRigidBody = world.createRigidBody(cubeBodyType);
+					const cubeColliderType = RAPIER.ColliderDesc.cuboid(2.5, 2.5, 2.5);
+					world.createCollider(cubeColliderType, cubeRigidBody);
+
+					const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
+
+					updateService.subscribe(() => {
+						const cubePosition = cubeCouple.rigid.translation();
+						const cubeRotation = cubeCouple.rigid.rotation();
+						cubeCouple.mesh.position.set(
+							cubePosition.x,
+							cubePosition.y,
+							cubePosition.z
+						);
+						cubeCouple.mesh.rotation.set(
+							cubeRotation.x,
+							cubeRotation.y,
+							cubeRotation.z
+						);
+
+						cubeCouple.mesh.setRotationFromQuaternion(
+							new THREE.Quaternion(
 								cubeRotation.x,
 								cubeRotation.y,
-								cubeRotation.z
-							);
+								cubeRotation.z,
+								cubeRotation.w
+							)
+						);
 
-							cubeCouple.mesh.setRotationFromQuaternion(
-								new THREE.Quaternion(
-									cubeRotation.x,
-									cubeRotation.y,
-									cubeRotation.z,
-									cubeRotation.w
-								)
-							);
+						const position = couple.rigid.translation();
+						const rotation = couple.rigid.rotation();
+						couple.mesh.position.set(position.x, position.y, position.z);
+						couple.mesh.rotation.set(rotation.x, rotation.y, rotation.z);
 
-							const position = couple.rigid.translation();
-							const rotation = couple.rigid.rotation();
-							couple.mesh.position.set(position.x, position.y, position.z);
-							couple.mesh.rotation.set(rotation.x, rotation.y, rotation.z);
-
-							couple.mesh.setRotationFromQuaternion(
-								new THREE.Quaternion(
-									rotation.x,
-									rotation.y,
-									rotation.z,
-									rotation.w
-								)
-							);
-						});
+						couple.mesh.setRotationFromQuaternion(
+							new THREE.Quaternion(
+								rotation.x,
+								rotation.y,
+								rotation.z,
+								rotation.w
+							)
+						);
 					});
 				}
 			});
