@@ -80,7 +80,7 @@
 
 					const scale = { x: 50, z: 50, y: 5 };
 					const nsubdivs = 50;
-					// three plane
+
 					const threeFloor = new THREE.Mesh(
 						new THREE.PlaneGeometry(scale.x, scale.z, nsubdivs, nsubdivs),
 						new THREE.MeshStandardMaterial({
@@ -88,6 +88,7 @@
 							roughness: 0.6
 						})
 					);
+
 					threeFloor.rotateX(-Math.PI / 2);
 					threeFloor.receiveShadow = true;
 					threeFloor.castShadow = true;
