@@ -10,7 +10,7 @@ export async function initializeRapier() {
 	return new Promise((res) => {
 		import('@dimforge/rapier3d').then((rapier) => {
 			RAPIER = rapier;
-			gravity = new rapier.Vector3(0, -9.81 / (60 / 16), 0);
+			gravity = new rapier.Vector3(0, -9.81, 0);
 			world = new rapier.World(gravity);
 			res('loaded');
 		});
