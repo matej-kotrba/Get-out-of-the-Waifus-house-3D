@@ -78,11 +78,11 @@
 
 					let heights: number[] = [];
 
-					const scale = { x: 8, y: 8, z: 1 };
+					const scale = { x: 50, y: 2, z: 50 };
 					const nsubdivs = 50;
 
 					const threeFloor = new THREE.Mesh(
-						new THREE.BoxGeometry(scale.x, scale.y, scale.z),
+						new THREE.PlaneGeometry(scale.x, scale.z, nsubdivs, nsubdivs),
 						new THREE.MeshBasicMaterial({ color: 'orange' })
 						// new THREE.MeshStandardMaterial({
 						// 	...preloadMachine.getLoadedTexture('leafy_grass'),
@@ -95,6 +95,65 @@
 					threeFloor.castShadow = true;
 					// threeFloor.rotateX(-Math.PI / 2);
 					scene.add(threeFloor);
+
+					const heightImage = new Image();
+					heightImage.src = './terrain_height_maps/norway.png';
+					const heightCanvas = document.createElement('canvas');
+					heightCanvas.style.position = 'fixed';
+					heightCanvas.style.top = '0';
+					heightCanvas.style.left = '0';
+					heightCanvas.style.zIndex = '100000000';
+					heightCanvas.style.scale = '0.4';
+					heightImage.onload = () => {
+						const heightContext = heightCanvas.getContext('2d');
+						heightCanvas.width = heightImage.width;
+						heightCanvas.height = heightImage.height;
+						if (heightContext) {
+							heightContext.fillStyle = 'red';
+							heightContext.fillRect(
+								0,
+								0,
+								heightImage.width,
+								heightImage.height
+							);
+							heightContext.drawImage(heightImage, 0, 0);
+							const rgba = heightContext.getImageData(
+								0,
+								0,
+								heightImage.width,
+								heightImage.height
+							).data;
+
+							const vertices = threeFloor.geometry.attributes.position.array;
+							const dx = scale.x / nsubdivs;
+							const dy = scale.z / nsubdivs;
+							const columsRows = new Map();
+
+							for (let i = 0; i < vertices.length; i += 3) {
+								let row = Math.floor(
+									Math.abs((vertices as any)[i] + scale.x / 2) / dx
+								);
+								let column = Math.floor(
+									Math.abs((vertices as any)[i + 1] - scale.z / 2) / dy
+								);
+								// generate height for this column & row
+								const randomHeight = Math.random();
+								(vertices as any)[i + 2] = scale.y * randomHeight;
+								// store height
+								if (!columsRows.get(column)) {
+									columsRows.set(column, new Map());
+								}
+								columsRows.get(column).set(row, randomHeight);
+							}
+							threeFloor.geometry.computeVertexNormals();
+
+							for (let i = 0; i <= nsubdivs; ++i) {
+								for (let j = 0; j <= nsubdivs; ++j) {
+									heights.push(columsRows.get(j).get(i));
+								}
+							}
+						}
+					};
 
 					// add height data to plane
 					// const vertices = threeFloor.geometry.attributes.position.array;
@@ -131,16 +190,22 @@
 					// const heightArray = new Float32Array(heights);
 
 					const bodyDesc = RAPIER.RigidBodyDesc.fixed();
-					// const q = new THREE.Quaternion().setFromEuler(
-					// 	new THREE.Euler(-Math.PI / 2, 0, 0, 'XYZ')
-					// );
-					// bodyDesc.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
-					const rigidBody = world.createRigidBody(bodyDesc);
-					const colliderType = RAPIER.ColliderDesc.cuboid(
-						scale.x / 2,
-						scale.y / 2,
-						scale.z / 2
+					const q = new THREE.Quaternion().setFromEuler(
+						new THREE.Euler(-Math.PI / 2, 0, 0, 'XYZ')
 					);
+					bodyDesc.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
+					const rigidBody = world.createRigidBody(bodyDesc);
+					const colliderType = RAPIER.ColliderDesc.heightfield(
+						2,
+						2,
+						new Float32Array([0, 0, 0, 0]),
+						scale
+					);
+					// const colliderType = RAPIER.ColliderDesc.cuboid(
+					// 	scale.x / 2,
+					// 	scale.y / 2,
+					// 	0
+					// );
 					// const colliderType = RAPIER.ColliderDesc.heightfield(
 					// 	nsubdivs,
 					// 	nsubdivs,
@@ -166,7 +231,7 @@
 					cubeBodyType.setTranslation(1, 20, 0.5);
 					const cubeRigidBody = world.createRigidBody(cubeBodyType);
 					const cubeColliderType = RAPIER.ColliderDesc.cuboid(1.5, 1.5, 1.5);
-					world.createCollider(cubeColliderType, cubeRigidBody);
+					// world.createCollider(cubeColliderType, cubeRigidBody);
 
 					const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
 
