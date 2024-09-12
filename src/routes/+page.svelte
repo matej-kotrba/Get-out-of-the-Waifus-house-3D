@@ -78,11 +78,11 @@
 
 					let heights: number[] = [];
 
-					const scale = { x: 8, z: 8, y: 1 };
+					const scale = { x: 8, y: 8, z: 1 };
 					const nsubdivs = 50;
 
 					const threeFloor = new THREE.Mesh(
-						new THREE.BoxGeometry(scale.x, scale.z, scale.y),
+						new THREE.BoxGeometry(scale.x, scale.y, scale.z),
 						new THREE.MeshBasicMaterial({ color: 'orange' })
 						// new THREE.MeshStandardMaterial({
 						// 	...preloadMachine.getLoadedTexture('leafy_grass'),
@@ -131,10 +131,10 @@
 					// const heightArray = new Float32Array(heights);
 
 					const bodyDesc = RAPIER.RigidBodyDesc.fixed();
-					const q = new THREE.Quaternion().setFromEuler(
-						new THREE.Euler(-Math.PI / 2, 0, 0, 'XYZ')
-					);
-					bodyDesc.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
+					// const q = new THREE.Quaternion().setFromEuler(
+					// 	new THREE.Euler(-Math.PI / 2, 0, 0, 'XYZ')
+					// );
+					// bodyDesc.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
 					const rigidBody = world.createRigidBody(bodyDesc);
 					const colliderType = RAPIER.ColliderDesc.cuboid(
 						scale.x / 2,
@@ -163,7 +163,7 @@
 					const cube = new THREE.Mesh(box, material);
 					scene.add(cube);
 					const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
-					cubeBodyType.setTranslation(0, 20, 0);
+					cubeBodyType.setTranslation(1, 20, 0.5);
 					const cubeRigidBody = world.createRigidBody(cubeBodyType);
 					const cubeColliderType = RAPIER.ColliderDesc.cuboid(1.5, 1.5, 1.5);
 					world.createCollider(cubeColliderType, cubeRigidBody);
@@ -193,16 +193,13 @@
 
 						const position = couple.rigid.translation();
 						const rotation = couple.rigid.rotation();
-						console.log(rotation);
 						couple.mesh.position.set(position.x, position.y, position.z);
 
-						couple.mesh.setRotationFromQuaternion(
-							new THREE.Quaternion(
-								rotation.x,
-								rotation.y,
-								rotation.z,
-								rotation.w
-							)
+						couple.mesh.quaternion.set(
+							rotation.x,
+							rotation.y,
+							rotation.z,
+							rotation.w
 						);
 
 						setTimeout(updatePhysics, 16);
