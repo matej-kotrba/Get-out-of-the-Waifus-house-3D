@@ -84,16 +84,10 @@
 					const threeFloor = new THREE.Mesh(
 						new THREE.PlaneGeometry(scale.x, scale.z, nsubdivs, nsubdivs),
 						new THREE.MeshBasicMaterial({ color: 'orange', wireframe: true })
-						// new THREE.MeshStandardMaterial({
-						// 	...preloadMachine.getLoadedTexture('leafy_grass'),
-						// 	roughness: 0.6,
-						// 	transparent: true
-						// })
 					);
 
 					threeFloor.receiveShadow = true;
 					threeFloor.castShadow = true;
-					// threeFloor.rotateX(-Math.PI / 2);
 					scene.add(threeFloor);
 
 					const heightImage = new Image();
