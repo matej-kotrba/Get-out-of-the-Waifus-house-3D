@@ -81,7 +81,7 @@
 					let heights: number[] = [];
 
 					const scale = { x: 50, y: 2, z: 50 };
-					const nsubdivs = 1081;
+					const nsubdivs = 400;
 
 					const threeFloor = new THREE.Mesh(
 						new THREE.PlaneGeometry(scale.x, scale.z, nsubdivs, nsubdivs),
@@ -136,6 +136,18 @@
 										255) *
 									scale.y;
 
+								// if (
+								// 	Math.ceil((column * nsubdivs + row) * 4 * ratio) > rgba.length
+								// ) {
+								// 	console.log(
+								// 		Math.ceil((column * nsubdivs + row) * 4 * ratio),
+								// 		column,
+								// 		row,
+								// 		nsubdivs,
+								// 		ratio
+								// 	);
+								// }
+
 								(vertices as any)[i + 2] = scale.y * randomHeight;
 								// store height
 								if (!columsRows.get(column)) {
@@ -145,12 +157,26 @@
 							}
 							threeFloor.geometry.attributes.position.needsUpdate = true;
 							threeFloor.geometry.computeVertexNormals();
-
-							for (let i = 0; i < nsubdivs; ++i) {
-								for (let j = 0; j < nsubdivs; ++j) {
-									heights.push(columsRows.get(j).get(i));
+							for (const [colKey, colMap] of columsRows) {
+								if (colKey !== 1081) {
+									for (const [rowKey, rowValue] of colMap) {
+										if (rowKey !== 1081) {
+											heights.push(rowValue);
+										}
+									}
 								}
 							}
+							// for (let i = 0; i < nsubdivs; ++i) {
+							// 	for (let j = 0; j < nsubdivs; ++j) {
+							// 		const column = columsRows.get(j);
+							// 		if (column) {
+							// 			const row = column.get(i);
+							// 			if (typeof row === 'number') {
+							// 				heights.push(row);
+							// 			}
+							// 		}
+							// 	}
+							// }
 						}
 
 						const bodyDesc = RAPIER.RigidBodyDesc.fixed();
