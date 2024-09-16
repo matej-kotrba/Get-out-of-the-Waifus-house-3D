@@ -22,6 +22,7 @@
 		initializeRapier
 	} from '$lib/game/physics/rapier';
 	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+	import type { RigidBody } from '@dimforge/rapier3d';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -80,23 +81,115 @@
 					let heights: number[] = [];
 
 					const scale = { x: 50, y: 2, z: 50 };
-					const nsubdivs = 50;
+					const nsubdivs = 1081;
 
-					const glbLoader = new GLTFLoader();
-					glbLoader.load('./models/ground.glb', (temp) => {
-						let model: THREE.Mesh<any, any, any> | undefined = undefined;
-						temp.scene.traverse((child) => {
-							if (child instanceof THREE.Mesh) {
-								child.receiveShadow = true;
-								child.castShadow = true;
-								model = child;
+					const threeFloor = new THREE.Mesh(
+						new THREE.PlaneGeometry(scale.x, scale.z, nsubdivs, nsubdivs),
+						new THREE.MeshBasicMaterial({ color: 'orange', wireframe: true })
+					);
+
+					threeFloor.receiveShadow = true;
+					threeFloor.castShadow = true;
+					scene.add(threeFloor);
+
+					const heightImage = new Image();
+					heightImage.src = './terrain_height_maps/norway.png';
+					const heightCanvas = document.createElement('canvas');
+					heightCanvas.style.position = 'fixed';
+					heightCanvas.style.top = '0';
+					heightCanvas.style.left = '0';
+					heightCanvas.style.zIndex = '100000000';
+					heightCanvas.style.scale = '0.4';
+					heightImage.onload = () => {
+						const heightContext = heightCanvas.getContext('2d');
+						heightCanvas.width = heightImage.width;
+						heightCanvas.height = heightImage.height;
+						if (heightContext) {
+							heightContext.fillStyle = 'red';
+							heightContext.fillRect(
+								0,
+								0,
+								heightImage.width,
+								heightImage.height
+							);
+							heightContext.drawImage(heightImage, 0, 0);
+							const rgba = heightContext.getImageData(
+								0,
+								0,
+								heightImage.width,
+								heightImage.height
+							).data;
+
+							console.log(rgba);
+
+							const vertices = threeFloor.geometry.attributes.position.array;
+							const dx = scale.x / nsubdivs;
+							const dy = scale.z / nsubdivs;
+							const columsRows = new Map();
+
+							for (let i = 0; i < vertices.length; i += 3) {
+								let row = Math.floor(
+									Math.abs((vertices as any)[i] + scale.x / 2) / dx
+								);
+								let column = Math.floor(
+									Math.abs((vertices as any)[i + 1] - scale.z / 2) / dy
+								);
+								// generate height for this column & row
+								const ratio = heightImage.width / nsubdivs;
+								const randomHeight =
+									(255 /
+										rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio)]) *
+									scale.y;
+
+								if (i / 3 === 2 || i / 3 === 1082) {
+									console.log(
+										i / 3,
+										row,
+										column,
+										Math.abs((vertices as any)[i + 1] - scale.z / 2),
+										Math.abs((vertices as any)[i + 1] - scale.z / 2) / dy,
+										(column * nsubdivs + row) * 4 * ratio,
+										rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio)]
+									);
+								}
+
+								(vertices as any)[i + 2] = scale.y * randomHeight;
+								// store height
+								if (!columsRows.get(column)) {
+									columsRows.set(column, new Map());
+								}
+								columsRows.get(column).set(row, randomHeight);
 							}
-						});
-						model = model as THREE.Mesh<any, any, any> | undefined;
+							threeFloor.geometry.attributes.position.needsUpdate = true;
+							threeFloor.geometry.computeVertexNormals();
 
-						if (!model) {
-							throw new Error('Model not found');
+							for (let i = 0; i <= nsubdivs; ++i) {
+								for (let j = 0; j <= nsubdivs; ++j) {
+									heights.push(columsRows.get(j).get(i));
+								}
+							}
 						}
+
+						const bodyDesc = RAPIER.RigidBodyDesc.fixed();
+						const q = new THREE.Quaternion().setFromEuler(
+							new THREE.Euler(-Math.PI / 2, 0, 0, 'XYZ')
+						);
+						bodyDesc.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
+						bodyDesc.setTranslation(0, -10, 0);
+						const rigidBody = world.createRigidBody(bodyDesc);
+						const colliderType = RAPIER.ColliderDesc.heightfield(
+							nsubdivs,
+							nsubdivs,
+							new Float32Array(heights),
+							scale
+						);
+
+						world.createCollider(
+							colliderType,
+							rigidBody.handle as unknown as RigidBody
+						);
+
+						const couple = { rigid: rigidBody, mesh: threeFloor };
 
 						const box = new THREE.BoxGeometry(3, 3, 3);
 						const material = new THREE.MeshBasicMaterial({
@@ -110,46 +203,9 @@
 						const cubeColliderType = RAPIER.ColliderDesc.cuboid(1.5, 1.5, 1.5);
 						world.createCollider(cubeColliderType, cubeRigidBody);
 
-						for (
-							let i = 0;
-							i < model.geometry.attributes.position.array.length;
-							i += 3
-						) {
-							heights.push(model.geometry.attributes.position.array[i + 1]);
-						}
-
-						console.log(
-							Math.sqrt(model.geometry.attributes.position.array.length / 3)
-						);
-						// for (let i = 0; i <= nsubdivs; ++i) {
-						// 		for (let j = 0; j <= nsubdivs; ++j) {
-						// 			heights.push(columsRows.get(j).get(i));
-						// 		}
-						// 	}
-						// }
-
-						const bodyDesc = RAPIER.RigidBodyDesc.fixed();
-						const q = new THREE.Quaternion().setFromEuler(
-							new THREE.Euler(-Math.PI / 2, 0, 0, 'XYZ')
-						);
-						bodyDesc.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
-						const rigidBody = world.createRigidBody(bodyDesc);
-						const colliderType = RAPIER.ColliderDesc.heightfield(
-							nsubdivs,
-							nsubdivs,
-							new Float32Array(heights),
-							scale
-						);
-
-						world.createCollider(
-							colliderType,
-							rigidBody.handle as unknown as typeof rigidBody
-						);
-
-						const couple = { rigid: rigidBody, mesh: model };
-
 						const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
 
+						// updateService.subscribe(() => {
 						function updatePhysics() {
 							world?.step();
 
@@ -184,144 +240,8 @@
 							setTimeout(updatePhysics, 16);
 						}
 						updatePhysics();
-					});
-
-					// const threeFloor = new THREE.Mesh(
-					// 	new THREE.PlaneGeometry(scale.x, scale.z, nsubdivs, nsubdivs),
-					// 	new THREE.MeshBasicMaterial({ color: 'orange', wireframe: true })
-					// );
-
-					// threeFloor.receiveShadow = true;
-					// threeFloor.castShadow = true;
-					// scene.add(threeFloor);
-
-					// const heightImage = new Image();
-					// heightImage.src = './terrain_height_maps/norway.png';
-					// const heightCanvas = document.createElement('canvas');
-					// heightCanvas.style.position = 'fixed';
-					// heightCanvas.style.top = '0';
-					// heightCanvas.style.left = '0';
-					// heightCanvas.style.zIndex = '100000000';
-					// heightCanvas.style.scale = '0.4';
-					// heightImage.onload = () => {
-					// 	const heightContext = heightCanvas.getContext('2d');
-					// 	heightCanvas.width = heightImage.width;
-					// 	heightCanvas.height = heightImage.height;
-					// 	if (heightContext) {
-					// 		heightContext.fillStyle = 'red';
-					// 		heightContext.fillRect(
-					// 			0,
-					// 			0,
-					// 			heightImage.width,
-					// 			heightImage.height
-					// 		);
-					// 		heightContext.drawImage(heightImage, 0, 0);
-					// 		const rgba = heightContext.getImageData(
-					// 			0,
-					// 			0,
-					// 			heightImage.width,
-					// 			heightImage.height
-					// 		).data;
-
-					// 		const vertices = threeFloor.geometry.attributes.position.array;
-					// 		const dx = scale.x / nsubdivs;
-					// 		const dy = scale.z / nsubdivs;
-					// 		const columsRows = new Map();
-
-					// 		for (let i = 0; i < vertices.length; i += 3) {
-					// 			let row = Math.floor(
-					// 				Math.abs((vertices as any)[i] + scale.x / 2) / dx
-					// 			);
-					// 			let column = Math.floor(
-					// 				Math.abs((vertices as any)[i + 1] - scale.z / 2) / dy
-					// 			);
-					// 			// generate height for this column & row
-					// 			const randomHeight = Math.random();
-					// 			(vertices as any)[i + 2] = scale.y * randomHeight;
-					// 			// store height
-					// 			if (!columsRows.get(column)) {
-					// 				columsRows.set(column, new Map());
-					// 			}
-					// 			columsRows.get(column).set(row, randomHeight);
-					// 		}
-					// 		threeFloor.geometry.attributes.position.needsUpdate = true;
-					// 		threeFloor.geometry.computeVertexNormals();
-
-					// 		for (let i = 0; i <= nsubdivs; ++i) {
-					// 			for (let j = 0; j <= nsubdivs; ++j) {
-					// 				heights.push(columsRows.get(j).get(i));
-					// 			}
-					// 		}
-					// 	}
-
-					// 	const bodyDesc = RAPIER.RigidBodyDesc.fixed();
-					// 	const q = new THREE.Quaternion().setFromEuler(
-					// 		new THREE.Euler(-Math.PI / 2, 0, 0, 'XYZ')
-					// 	);
-					// 	bodyDesc.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
-					// 	const rigidBody = world.createRigidBody(bodyDesc);
-					// 	const colliderType = RAPIER.ColliderDesc.heightfield(
-					// 		nsubdivs,
-					// 		nsubdivs,
-					// 		new Float32Array(heights),
-					// 		scale
-					// 	);
-
-					// 	world.createCollider(colliderType, rigidBody.handle);
-
-					// 	const couple = { rigid: rigidBody, mesh: threeFloor };
-
-					// 	const box = new THREE.BoxGeometry(3, 3, 3);
-					// 	const material = new THREE.MeshBasicMaterial({
-					// 		color: 0x00ff00
-					// 	});
-					// 	const cube = new THREE.Mesh(box, material);
-					// 	scene.add(cube);
-					// 	const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
-					// 	cubeBodyType.setTranslation(1, 20, 0.5);
-					// 	const cubeRigidBody = world.createRigidBody(cubeBodyType);
-					// 	const cubeColliderType = RAPIER.ColliderDesc.cuboid(1.5, 1.5, 1.5);
-					// 	world.createCollider(cubeColliderType, cubeRigidBody);
-
-					// 	const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
-
-					// 	// updateService.subscribe(() => {
-					// 	function updatePhysics() {
-					// 		world?.step();
-
-					// 		const cubePosition = cubeCouple.rigid.translation();
-					// 		const cubeRotation = cubeCouple.rigid.rotation();
-					// 		cubeCouple.mesh.position.set(
-					// 			cubePosition.x,
-					// 			cubePosition.y,
-					// 			cubePosition.z
-					// 		);
-
-					// 		cubeCouple.mesh.setRotationFromQuaternion(
-					// 			new THREE.Quaternion(
-					// 				cubeRotation.x,
-					// 				cubeRotation.y,
-					// 				cubeRotation.z,
-					// 				cubeRotation.w
-					// 			)
-					// 		);
-
-					// 		const position = couple.rigid.translation();
-					// 		const rotation = couple.rigid.rotation();
-					// 		couple.mesh.position.set(position.x, position.y, position.z);
-
-					// 		couple.mesh.quaternion.set(
-					// 			rotation.x,
-					// 			rotation.y,
-					// 			rotation.z,
-					// 			rotation.w
-					// 		);
-
-					// 		setTimeout(updatePhysics, 16);
-					// 	}
-					// 	updatePhysics();
-					// 	// });
-					// };
+						// });
+					};
 				}
 			});
 		}
