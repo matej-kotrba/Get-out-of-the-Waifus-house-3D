@@ -120,38 +120,21 @@
 								heightImage.height
 							).data;
 
-							console.log(rgba);
+							console.log(rgba, rgba.length);
 
 							const vertices = threeFloor.geometry.attributes.position.array;
-							const dx = scale.x / nsubdivs;
-							const dy = scale.z / nsubdivs;
+							const r = nsubdivs / heightImage.width;
 							const columsRows = new Map();
 
 							for (let i = 0; i < vertices.length; i += 3) {
-								let row = Math.floor(
-									Math.abs((vertices as any)[i] + scale.x / 2) / dx
-								);
-								let column = Math.floor(
-									Math.abs((vertices as any)[i + 1] - scale.z / 2) / dy
-								);
+								let row = Math.floor(Math.floor((i / 3) % (nsubdivs + 1)) / r);
+								let column = Math.floor(Math.floor(i / 3 / (nsubdivs + 1)) / r);
 								// generate height for this column & row
 								const ratio = heightImage.width / nsubdivs;
 								const randomHeight =
-									(255 /
-										rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio)]) *
+									(rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio)] /
+										255) *
 									scale.y;
-
-								if (i / 3 === 2 || i / 3 === 1082) {
-									console.log(
-										i / 3,
-										row,
-										column,
-										Math.abs((vertices as any)[i + 1] - scale.z / 2),
-										Math.abs((vertices as any)[i + 1] - scale.z / 2) / dy,
-										(column * nsubdivs + row) * 4 * ratio,
-										rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio)]
-									);
-								}
 
 								(vertices as any)[i + 2] = scale.y * randomHeight;
 								// store height
@@ -163,8 +146,8 @@
 							threeFloor.geometry.attributes.position.needsUpdate = true;
 							threeFloor.geometry.computeVertexNormals();
 
-							for (let i = 0; i <= nsubdivs; ++i) {
-								for (let j = 0; j <= nsubdivs; ++j) {
+							for (let i = 0; i < nsubdivs; ++i) {
+								for (let j = 0; j < nsubdivs; ++j) {
 									heights.push(columsRows.get(j).get(i));
 								}
 							}
@@ -175,11 +158,10 @@
 							new THREE.Euler(-Math.PI / 2, 0, 0, 'XYZ')
 						);
 						bodyDesc.setRotation({ x: q.x, y: q.y, z: q.z, w: q.w });
-						bodyDesc.setTranslation(0, -10, 0);
 						const rigidBody = world.createRigidBody(bodyDesc);
 						const colliderType = RAPIER.ColliderDesc.heightfield(
-							nsubdivs,
-							nsubdivs,
+							nsubdivs - 1,
+							nsubdivs - 1,
 							new Float32Array(heights),
 							scale
 						);
