@@ -81,7 +81,7 @@
 					let heights: number[] = [];
 
 					const scale = { x: 50, y: 2, z: 50 };
-					const nsubdivs = 400;
+					const nsubdivs = 1081;
 
 					const threeFloor = new THREE.Mesh(
 						new THREE.PlaneGeometry(scale.x, scale.z, nsubdivs, nsubdivs),
@@ -131,10 +131,23 @@
 								let column = Math.floor(Math.floor(i / 3 / (nsubdivs + 1)) / r);
 								// generate height for this column & row
 								const ratio = heightImage.width / nsubdivs;
-								const randomHeight =
-									(rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio)] /
-										255) *
-									scale.y;
+
+								// Check whether the height is 255 or just hit alpha channel
+								let color =
+									rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio)];
+								if (color === 255) {
+									const preColor =
+										rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio) - 1];
+									const postColor =
+										rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio) + 1];
+									if (preColor !== 255) {
+										color = preColor;
+									} else if (postColor !== 255) {
+										color = postColor;
+									}
+								}
+
+								const randomHeight = (color / 255) * scale.y;
 
 								if (randomHeight === 2 && column === 1078) {
 									console.log(
