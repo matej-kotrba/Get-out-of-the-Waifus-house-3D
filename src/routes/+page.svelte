@@ -136,6 +136,15 @@
 										255) *
 									scale.y;
 
+								if (randomHeight === 2 && column === 1078) {
+									console.log(
+										Math.ceil((column * nsubdivs + row) * 4 * ratio),
+										column,
+										row,
+										ratio
+									);
+								}
+
 								// if (
 								// 	Math.ceil((column * nsubdivs + row) * 4 * ratio) > rgba.length
 								// ) {
@@ -148,33 +157,34 @@
 								// 	);
 								// }
 
+								let idk = Math.floor(i / 3 / (nsubdivs + 1));
+								let idk2 = Math.floor((i / 3) % (nsubdivs + 1));
 								(vertices as any)[i + 2] = scale.y * randomHeight;
 								// store height
-								if (!columsRows.get(column)) {
-									columsRows.set(column, new Map());
+								if (!columsRows.get(idk)) {
+									columsRows.set(idk, new Map());
 								}
-								columsRows.get(column).set(row, randomHeight);
+								columsRows.get(idk).set(idk2, randomHeight);
 							}
 							threeFloor.geometry.attributes.position.needsUpdate = true;
 							threeFloor.geometry.computeVertexNormals();
-							for (const [colKey, colMap] of columsRows) {
-								if (colKey !== 1081) {
-									for (const [rowKey, rowValue] of colMap) {
-										if (rowKey !== 1081) {
-											heights.push(rowValue);
-										}
+
+							console.log(columsRows);
+
+							for (let i = 0; i < columsRows.size - 1; ++i) {
+								for (let j = 0; j < columsRows.size; ++j) {
+									const value = columsRows.get(j)?.get(i);
+									if (!isNaN(value) && typeof value === 'number') {
+										heights.push(value);
 									}
 								}
 							}
+
+							console.log(heights.length, heights);
+
 							// for (let i = 0; i < nsubdivs; ++i) {
 							// 	for (let j = 0; j < nsubdivs; ++j) {
-							// 		const column = columsRows.get(j);
-							// 		if (column) {
-							// 			const row = column.get(i);
-							// 			if (typeof row === 'number') {
-							// 				heights.push(row);
-							// 			}
-							// 		}
+							// 		heights.push(columsRows.get(j).get(i));
 							// 	}
 							// }
 						}
