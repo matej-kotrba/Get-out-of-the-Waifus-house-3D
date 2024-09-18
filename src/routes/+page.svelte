@@ -81,7 +81,7 @@
 					let heights: number[] = [];
 
 					const scale = { x: 50, y: 2, z: 50 };
-					const nsubdivs = 1081;
+					const nsubdivs = 40;
 
 					const threeFloor = new THREE.Mesh(
 						new THREE.PlaneGeometry(scale.x, scale.z, nsubdivs, nsubdivs),
@@ -158,18 +158,6 @@
 									);
 								}
 
-								// if (
-								// 	Math.ceil((column * nsubdivs + row) * 4 * ratio) > rgba.length
-								// ) {
-								// 	console.log(
-								// 		Math.ceil((column * nsubdivs + row) * 4 * ratio),
-								// 		column,
-								// 		row,
-								// 		nsubdivs,
-								// 		ratio
-								// 	);
-								// }
-
 								let idk = Math.floor(i / 3 / (nsubdivs + 1));
 								let idk2 = Math.floor((i / 3) % (nsubdivs + 1));
 								(vertices as any)[i + 2] = scale.y * randomHeight;
@@ -192,14 +180,6 @@
 									}
 								}
 							}
-
-							console.log(heights.length, heights);
-
-							// for (let i = 0; i < nsubdivs; ++i) {
-							// 	for (let j = 0; j < nsubdivs; ++j) {
-							// 		heights.push(columsRows.get(j).get(i));
-							// 	}
-							// }
 						}
 
 						const bodyDesc = RAPIER.RigidBodyDesc.fixed();
