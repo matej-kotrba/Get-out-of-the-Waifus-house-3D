@@ -202,40 +202,40 @@
 
 						const couple = { rigid: rigidBody, mesh: threeFloor };
 
-						const box = new THREE.BoxGeometry(3, 3, 3);
-						const material = new THREE.MeshBasicMaterial({
-							color: 0x00ff00
-						});
-						const cube = new THREE.Mesh(box, material);
-						scene.add(cube);
-						const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
-						cubeBodyType.setTranslation(1, 20, 0.5);
-						const cubeRigidBody = world.createRigidBody(cubeBodyType);
-						const cubeColliderType = RAPIER.ColliderDesc.cuboid(1.5, 1.5, 1.5);
-						world.createCollider(cubeColliderType, cubeRigidBody);
+						// const box = new THREE.BoxGeometry(3, 3, 3);
+						// const material = new THREE.MeshBasicMaterial({
+						// 	color: 0x00ff00
+						// });
+						// const cube = new THREE.Mesh(box, material);
+						// scene.add(cube);
+						// const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
+						// cubeBodyType.setTranslation(1, 20, 0.5);
+						// const cubeRigidBody = world.createRigidBody(cubeBodyType);
+						// const cubeColliderType = RAPIER.ColliderDesc.cuboid(1.5, 1.5, 1.5);
+						// world.createCollider(cubeColliderType, cubeRigidBody);
 
-						const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
+						// const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
 
 						// updateService.subscribe(() => {
 						function updatePhysics() {
 							world?.step();
 
-							const cubePosition = cubeCouple.rigid.translation();
-							const cubeRotation = cubeCouple.rigid.rotation();
-							cubeCouple.mesh.position.set(
-								cubePosition.x,
-								cubePosition.y,
-								cubePosition.z
-							);
+							// const cubePosition = cubeCouple.rigid.translation();
+							// const cubeRotation = cubeCouple.rigid.rotation();
+							// cubeCouple.mesh.position.set(
+							// 	cubePosition.x,
+							// 	cubePosition.y,
+							// 	cubePosition.z
+							// );
 
-							cubeCouple.mesh.setRotationFromQuaternion(
-								new THREE.Quaternion(
-									cubeRotation.x,
-									cubeRotation.y,
-									cubeRotation.z,
-									cubeRotation.w
-								)
-							);
+							// cubeCouple.mesh.setRotationFromQuaternion(
+							// 	new THREE.Quaternion(
+							// 		cubeRotation.x,
+							// 		cubeRotation.y,
+							// 		cubeRotation.z,
+							// 		cubeRotation.w
+							// 	)
+							// );
 
 							const position = couple.rigid.translation();
 							const rotation = couple.rigid.rotation();

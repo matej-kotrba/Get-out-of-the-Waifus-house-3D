@@ -13,6 +13,8 @@ import listenerService, {
 	type KeypressListenerKeys
 } from '$lib/game/general/ListenerService';
 import { DIRECTIONS, INTERACTION } from '$lib/game/constants/controls';
+import type { Ray, RigidBody } from '@dimforge/rapier3d';
+import { getRapierProperties } from '$lib/game/physics/rapier';
 
 const allowedAnimations: AnimationsToPreloadOptions[] = [
 	'idle',
@@ -52,12 +54,18 @@ export class CharacterControls {
 	rotateQuaternion = new THREE.Quaternion();
 	cameraTarget = new THREE.Vector3();
 
+	storedFall = 0;
 	fadeDuration = 0.2;
 	runVelocity = 5;
 	walkVelocity = 2;
 
 	// Current item in hand
 	itemInHand: THREE.Object3D | undefined = undefined;
+
+	// Physics
+	ray: Ray;
+	rigidBody: RigidBody;
+	lerp = (x: number, y: number, a: number) => x * (1 - a) + y * a;
 
 	constructor(
 		model: THREE.Object3D,
@@ -68,6 +76,19 @@ export class CharacterControls {
 		this.model = model;
 		this.animationsMap = new Map();
 		this.mixer = new THREE.AnimationMixer(model);
+
+		const { RAPIER, world } = getRapierProperties();
+
+		this.ray = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
+
+		const bodyDesc =
+			RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(-1, 3, 1);
+		this.rigidBody = world.createRigidBody(bodyDesc);
+		const dynamicCollider = RAPIER.ColliderDesc.ball(0.28);
+		world.createCollider(
+			dynamicCollider,
+			this.rigidBody.handle as unknown as RigidBody
+		);
 
 		const animations = allowedAnimations
 			.map((animation) => [
@@ -167,6 +188,10 @@ export class CharacterControls {
 
 		this.mixer.update(delta);
 
+		this.walkDirection.x = this.walkDirection.y = this.walkDirection.z = 0;
+
+		let velocity = 0;
+
 		if (
 			this.blockingAnimationsQueue[0] &&
 			this.isBlockingAnimationFinished(this.blockingAnimationsQueue[0])
@@ -177,13 +202,49 @@ export class CharacterControls {
 		if (this.isMobilityAction(this.currentAction)) {
 			this.updateCharacterRotation(keys, delta);
 
-			const velocity =
+			velocity =
 				this.currentAction === 'run' ? this.runVelocity : this.walkVelocity;
-			const moveX = this.walkDirection.x * velocity * delta;
-			const moveZ = this.walkDirection.z * velocity * delta;
-			this.model.position.x += moveX;
-			this.model.position.z += moveZ;
-			this.updateCameraTarget(moveX, moveZ);
+		}
+
+		const { world } = getRapierProperties();
+		const translation = this.rigidBody.translation();
+		if (translation.y < -1) {
+			this.rigidBody.setNextKinematicTranslation({ x: 0, y: 10, z: 0 });
+		} else {
+			const cameraPositionOffset = this.orbit.position.sub(this.model.position);
+			this.model.position.x = translation.x;
+			this.model.position.y = translation.y;
+			this.model.position.z = translation.z;
+			this.updateCameraTarget(cameraPositionOffset);
+
+			this.walkDirection.y += this.lerp(this.storedFall, -9.81 * delta, 0.1);
+			this.storedFall = this.walkDirection.y;
+			this.ray.origin.x = translation.x;
+			this.ray.origin.y = translation.y;
+			this.ray.origin.z = translation.z;
+			const hit = world.castRay(this.ray, 0.5, false, 0xfffffffff);
+			if (hit) {
+				const point = this.ray.pointAt(hit.timeOfImpact);
+				const diff = translation.y - (point.y + 0.28);
+				if (diff < 0.0) {
+					this.storedFall = 0;
+					this.walkDirection.y = this.lerp(0, Math.abs(diff), 0.5);
+				}
+			}
+
+			this.walkDirection.x = this.walkDirection.x * velocity * delta;
+			this.walkDirection.z = this.walkDirection.z * velocity * delta;
+
+			this.rigidBody.setNextKinematicTranslation({
+				x: translation.x + this.walkDirection.x,
+				y: translation.y + this.walkDirection.y,
+				z: translation.z + this.walkDirection.z
+			});
+			// const moveX = this.walkDirection.x * velocity * delta;
+			// const moveZ = this.walkDirection.z * velocity * delta;
+			// this.model.position.x += moveX;
+			// this.model.position.z += moveZ;
+			// this.updateCameraTarget(moveX, moveZ);
 		}
 	}
 
@@ -305,10 +366,21 @@ export class CharacterControls {
 		this.walkDirection.applyAxisAngle(this.rotateAngle, directionOffset);
 	}
 
-	private updateCameraTarget(moveX: number, moveZ: number) {
-		this.orbit.position.x += moveX;
-		this.orbit.position.z += moveZ;
+	private updateCameraTarget(cameraPositionOffset: THREE.Vector3) {
+		const rigidTranslation = this.rigidBody.translation();
+		this.orbit.position.x = rigidTranslation.x + cameraPositionOffset.x;
+		this.orbit.position.y = rigidTranslation.y + cameraPositionOffset.y;
+		this.orbit.position.z = rigidTranslation.z + cameraPositionOffset.z;
+
+		this.cameraTarget.x = rigidTranslation.x;
+		this.cameraTarget.y = rigidTranslation.y + 1;
+		this.cameraTarget.z = rigidTranslation.z;
 	}
+
+	// private updateCameraTarget(moveX: number, moveZ: number) {
+	// 	this.orbit.position.x += moveX;
+	// 	this.orbit.position.z += moveZ;
+	// }
 
 	private dirationOffset(keysPressed: KeypressListenerKeys) {
 		let directionOffset = 0;

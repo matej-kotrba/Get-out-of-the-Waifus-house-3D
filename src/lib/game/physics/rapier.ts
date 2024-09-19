@@ -18,5 +18,9 @@ export async function initializeRapier() {
 }
 
 export function getRapierProperties() {
-	return { RAPIER, gravity, world };
+	return { RAPIER, gravity, world } as {
+		RAPIER: RapierType;
+		gravity: Vector;
+		world: World;
+	};
 }
