@@ -8,7 +8,7 @@ import player from './Player.svelte';
 import { EMPTY_HAND, inventoryItemsRecord } from '$lib/game/item/inventory/items-record';
 import listenerService, { type KeypressListenerKeys } from '$lib/game/general/ListenerService';
 import { DIRECTIONS, INTERACTION } from '$lib/game/constants/controls';
-import type { Collider, KinematicCharacterController, RigidBody } from '@dimforge/rapier3d';
+import type { Collider, KinematicCharacterController, Ray, RigidBody } from '@dimforge/rapier3d';
 import { getRapierProperties } from '$lib/game/physics/rapier';
 
 const allowedAnimations: AnimationsToPreloadOptions[] = [
@@ -49,6 +49,7 @@ export class CharacterControls {
 	fadeDuration = 0.2;
 	runVelocity = 5;
 	walkVelocity = 2;
+	storedFall = 0;
 
 	// Current item in hand
 	itemInHand: THREE.Object3D | undefined = undefined;
@@ -57,6 +58,7 @@ export class CharacterControls {
 	physicsCharacterController: KinematicCharacterController;
 	rigidBody: RigidBody;
 	collider: Collider;
+	ray: Ray;
 	lerp = (x: number, y: number, a: number) => x * (1 - a) + y * a;
 
 	constructor(
@@ -80,6 +82,8 @@ export class CharacterControls {
 			dynamicCollider,
 			this.rigidBody.handle as unknown as RigidBody
 		);
+
+		this.ray = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
 
 		const animations = allowedAnimations
 			.map((animation) => [preloadMachine.getLoadedAnimation(animation), animation])
@@ -188,24 +192,34 @@ export class CharacterControls {
 			this.firstOutBlockingAnimation();
 		}
 
+		let velocity = 0;
 		if (this.isMobilityAction(this.currentAction)) {
 			this.updateCharacterRotation(keys, delta);
-			const velocity = this.currentAction === 'run' ? this.runVelocity : this.walkVelocity;
-			const moveX = this.walkDirection.x * velocity * delta;
-			const moveZ = this.walkDirection.z * velocity * delta;
-
-			// Physics
-			this.physicsCharacterController.computeColliderMovement(
-				this.collider,
-				new THREE.Vector3(moveX, 0, moveZ)
-			);
-			const correctedMovement = this.physicsCharacterController.computedMovement();
-			this.rigidBody.setNextKinematicTranslation(correctedMovement);
-
-			this.model.position.x += correctedMovement.x;
-			this.model.position.z += correctedMovement.z;
-			this.updateCameraTarget(correctedMovement.x, correctedMovement.y, correctedMovement.z);
+			velocity = this.currentAction === 'run' ? this.runVelocity : this.walkVelocity;
 		}
+
+		const moveX = this.walkDirection.x * velocity * delta;
+		const moveZ = this.walkDirection.z * velocity * delta;
+
+		const idk = this.lerp(this.storedFall, -9.81 * delta, 0.1);
+		this.storedFall = idk;
+
+		// Physics
+		this.physicsCharacterController.computeColliderMovement(
+			this.collider,
+			new THREE.Vector3(moveX, this.storedFall, moveZ)
+		);
+		const correctedMovement = this.physicsCharacterController.computedMovement();
+		this.rigidBody.setNextKinematicTranslation(correctedMovement);
+
+		if (this.storedFall > correctedMovement.y) {
+			this.storedFall = 0;
+		}
+
+		this.model.position.x += correctedMovement.x;
+		this.model.position.y += correctedMovement.y;
+		this.model.position.z += correctedMovement.z;
+		this.updateCameraTarget(correctedMovement.x, correctedMovement.y, correctedMovement.z);
 	}
 
 	private initializeItemInHandToRender() {
