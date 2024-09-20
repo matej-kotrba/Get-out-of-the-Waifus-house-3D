@@ -5,19 +5,10 @@ import preloadMachine, {
 import worldObjects from '$lib/game/general/WorldObjects';
 import tooltipService from '$lib/game/general/TooltipService';
 import player from './Player.svelte';
-import {
-	EMPTY_HAND,
-	inventoryItemsRecord
-} from '$lib/game/item/inventory/items-record';
-import listenerService, {
-	type KeypressListenerKeys
-} from '$lib/game/general/ListenerService';
+import { EMPTY_HAND, inventoryItemsRecord } from '$lib/game/item/inventory/items-record';
+import listenerService, { type KeypressListenerKeys } from '$lib/game/general/ListenerService';
 import { DIRECTIONS, INTERACTION } from '$lib/game/constants/controls';
-import type {
-	Collider,
-	KinematicCharacterController,
-	RigidBody
-} from '@dimforge/rapier3d';
+import type { Collider, KinematicCharacterController, RigidBody } from '@dimforge/rapier3d';
 import { getRapierProperties } from '$lib/game/physics/rapier';
 
 const allowedAnimations: AnimationsToPreloadOptions[] = [
@@ -30,10 +21,7 @@ const allowedAnimations: AnimationsToPreloadOptions[] = [
 ] as const;
 
 export type CharacterAction = (typeof allowedAnimations)[number];
-export type CharacterAnimationsMap = Map<
-	CharacterAction,
-	THREE.AnimationAction
->;
+export type CharacterAnimationsMap = Map<CharacterAction, THREE.AnimationAction>;
 
 type BlockingAnimation = {
 	type: CharacterAction;
@@ -84,9 +72,9 @@ export class CharacterControls {
 		const { RAPIER, world } = getRapierProperties();
 		this.physicsCharacterController = world.createCharacterController(0.01);
 
-		const bodyDesc =
-			RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(-1, 3, 1);
+		const bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased();
 		this.rigidBody = world.createRigidBody(bodyDesc);
+
 		const dynamicCollider = RAPIER.ColliderDesc.ball(0.28);
 		this.collider = world.createCollider(
 			dynamicCollider,
@@ -94,10 +82,7 @@ export class CharacterControls {
 		);
 
 		const animations = allowedAnimations
-			.map((animation) => [
-				preloadMachine.getLoadedAnimation(animation),
-				animation
-			])
+			.map((animation) => [preloadMachine.getLoadedAnimation(animation), animation])
 			.filter((animation) => animation[1] !== undefined) as [
 			THREE.AnimationClip,
 			AnimationsToPreloadOptions
@@ -116,6 +101,13 @@ export class CharacterControls {
 			}
 		});
 		this.camera = camera;
+
+		// Set initial physics position
+		this.rigidBody.setNextKinematicTranslation(new THREE.Vector3(0, 2, 0));
+		world.step();
+		const initial = this.rigidBody.translation();
+		this.model.position.set(initial.x, initial.y, initial.z);
+		this.updateCameraTarget(initial.x, initial.y, initial.z);
 
 		const minMaxZoom = [0.5, 0.8];
 		listenerService.subscribe('wheel', (event) => {
@@ -156,9 +148,7 @@ export class CharacterControls {
 			tooltipService.clear();
 		}
 
-		const directionPressed = Object.values(DIRECTIONS).some(
-			(key) => keys[key] === true
-		);
+		const directionPressed = Object.values(DIRECTIONS).some((key) => keys[key] === true);
 
 		let play: CharacterAction = 'idle';
 		if (keys['q']) {
@@ -200,8 +190,7 @@ export class CharacterControls {
 
 		if (this.isMobilityAction(this.currentAction)) {
 			this.updateCharacterRotation(keys, delta);
-			const velocity =
-				this.currentAction === 'run' ? this.runVelocity : this.walkVelocity;
+			const velocity = this.currentAction === 'run' ? this.runVelocity : this.walkVelocity;
 			const moveX = this.walkDirection.x * velocity * delta;
 			const moveZ = this.walkDirection.z * velocity * delta;
 
@@ -210,13 +199,12 @@ export class CharacterControls {
 				this.collider,
 				new THREE.Vector3(moveX, 0, moveZ)
 			);
-			const correctedMovement =
-				this.physicsCharacterController.computedMovement();
+			const correctedMovement = this.physicsCharacterController.computedMovement();
 			this.rigidBody.setNextKinematicTranslation(correctedMovement);
 
 			this.model.position.x += correctedMovement.x;
 			this.model.position.z += correctedMovement.z;
-			this.updateCameraTarget(correctedMovement.x, correctedMovement.z);
+			this.updateCameraTarget(correctedMovement.x, correctedMovement.y, correctedMovement.z);
 		}
 	}
 
@@ -250,10 +238,7 @@ export class CharacterControls {
 		model.rotation.z = -1.6;
 	}
 
-	private addBlockingAnimation(
-		action: CharacterAction,
-		options?: { reversed: boolean }
-	) {
+	private addBlockingAnimation(action: CharacterAction, options?: { reversed: boolean }) {
 		const animation = this.animationsMap.get(action);
 		// THIS MAY CHANGE
 		this.blockingAnimationsQueue = this.blockingAnimationsQueue.filter(
@@ -278,8 +263,7 @@ export class CharacterControls {
 		}
 
 		return (
-			animation.action.time > 0 &&
-			animation.action.time >= animation.action.getClip().duration
+			animation.action.time > 0 && animation.action.time >= animation.action.getClip().duration
 		);
 	}
 
@@ -302,10 +286,7 @@ export class CharacterControls {
 		let closestItem = worldObjects.groundItems[0];
 		for (const item of worldObjects.groundItems) {
 			const distance = this.model.position.distanceTo(item.model.position);
-			if (
-				distance < 2 &&
-				distance < this.model.position.distanceTo(closestItem.model.position)
-			) {
+			if (distance < 2 && distance < this.model.position.distanceTo(closestItem.model.position)) {
 				closestItem = item;
 			}
 		}
@@ -338,8 +319,9 @@ export class CharacterControls {
 		this.walkDirection.applyAxisAngle(this.rotateAngle, directionOffset);
 	}
 
-	private updateCameraTarget(moveX: number, moveZ: number) {
+	private updateCameraTarget(moveX: number, moveY: number, moveZ: number) {
 		this.orbit.position.x += moveX;
+		this.orbit.position.y += moveY;
 		this.orbit.position.z += moveZ;
 	}
 
