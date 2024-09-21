@@ -184,7 +184,7 @@
 						const cube = new THREE.Mesh(box, material);
 						scene.add(cube);
 						const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
-						cubeBodyType.setTranslation(4, 20, 0.5);
+						cubeBodyType.setTranslation(-4, 20, 0.5);
 						const cubeRigidBody = world.createRigidBody(cubeBodyType);
 						const cubeColliderType = RAPIER.ColliderDesc.cuboid(1.5, 1.5, 1.5);
 						world.createCollider(cubeColliderType, cubeRigidBody);
