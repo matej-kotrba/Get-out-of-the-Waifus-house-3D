@@ -73,6 +73,7 @@ export class CharacterControls {
 
 		const { RAPIER, world } = getRapierProperties();
 		this.physicsCharacterController = world.createCharacterController(0.01);
+		this.physicsCharacterController.enableSnapToGround(0.5);
 
 		const bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased();
 		this.rigidBody = world.createRigidBody(bodyDesc);
@@ -107,7 +108,7 @@ export class CharacterControls {
 		this.camera = camera;
 
 		// Set initial physics position
-		this.rigidBody.setNextKinematicTranslation(new THREE.Vector3(0, 2, 0));
+		this.rigidBody.setNextKinematicTranslation(new THREE.Vector3(0, 0.5, 0));
 		world.step();
 		const initial = this.rigidBody.translation();
 		this.model.position.set(initial.x, initial.y, initial.z);
@@ -201,19 +202,18 @@ export class CharacterControls {
 		const moveX = this.walkDirection.x * velocity * delta;
 		const moveZ = this.walkDirection.z * velocity * delta;
 
-		const idk = this.lerp(this.storedFall, -9.81 * delta, 0.1);
-		this.storedFall = idk;
+		// this.walkDirection.y += -0.0001; //this.lerp(this.storedFall, -9.81 * delta, 0.1);
+		// this.storedFall = this.walkDirection.y;
 
 		// Physics
 		this.physicsCharacterController.computeColliderMovement(
 			this.collider,
-			new THREE.Vector3(moveX, this.storedFall, moveZ)
+			new THREE.Vector3(moveX, 0, moveZ)
 		);
 		const correctedMovement = this.physicsCharacterController.computedMovement();
 		this.rigidBody.setNextKinematicTranslation(correctedMovement);
 
-		if (this.storedFall > correctedMovement.y) {
-			this.storedFall = 0;
+		if (this.walkDirection.y > correctedMovement.y) {
 		}
 
 		this.model.position.x += correctedMovement.x;
