@@ -1,31 +1,22 @@
 import * as THREE from 'three';
 import { EXRLoader, FBXLoader, RGBELoader } from 'three/examples/jsm/Addons.js';
-import {
-	itemTypeMethodsRecord,
-	type ItemTypeMethodsRecordType
-} from '../item/ground/GroundItem';
+import { itemTypeMethodsRecord, type ItemTypeMethodsRecordType } from '../item/ground/GroundItem';
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
-export type PreloadedParts =
-	| 'items'
-	| 'animations'
-	| 'models'
-	| 'hdris'
-	| 'textures';
+export type PreloadedParts = 'items' | 'animations' | 'models' | 'hdris' | 'textures';
 
 export const itemsToPreload: ItemTypeMethodsRecordType[] = ['machete'] as const;
-
+export const modelsToPreload = ['bot', 'peasant'] as const;
 export const animationsToPreload = [
 	'idle',
 	'walk',
 	'walkWithItem',
 	'run',
 	'meleeAttack',
-	'equipStand'
+	'equipStand',
+	'neutralIdle'
 ] as const;
-
 export const hdrisToPreload = ['forest'] as const;
-
 export const texturesToPreload = ['leafy_grass'] as const;
 const textureMapsNamingsToPreload = {
 	map: 'diff.jpg',
@@ -41,6 +32,7 @@ type PreloadedTexture = {
 };
 
 export type ItemsToPreloadOptions = (typeof itemsToPreload)[number];
+export type ModelsToPreloadOptions = (typeof modelsToPreload)[number];
 export type AnimationsToPreloadOptions = (typeof animationsToPreload)[number];
 export type HDRIsToPreloadOptions = (typeof hdrisToPreload)[number];
 
@@ -62,11 +54,10 @@ class PreloadService {
 
 	// Preloading animations data
 	#animationsToPreload = animationsToPreload;
-	#animationsLoaded: Map<AnimationsToPreloadOptions, THREE.AnimationClip> =
-		new Map();
+	#animationsLoaded: Map<AnimationsToPreloadOptions, THREE.AnimationClip> = new Map();
 
 	// Preloading models data
-	// #modelsToPreload: string[] = ["bot"];
+	#modelsToPreload = modelsToPreload;
 	#modelsLoaded: Map<string, THREE.Group<THREE.Object3DEventMap>> = new Map();
 
 	// Preloading HDRIs
@@ -104,7 +95,7 @@ class PreloadService {
 		return animation.clone();
 	}
 
-	public getLoadedModel(key: string) {
+	public getLoadedModel(key: ModelsToPreloadOptions) {
 		const model = this.#modelsLoaded.get(key);
 		if (!model) return;
 		return clone(model);
@@ -141,7 +132,7 @@ class PreloadService {
 		loadingManager.addHandler(/\.exr$/i, new EXRLoader());
 
 		loadingManager.onLoad = () => {
-			preloadMachine.preloadedParts['items'] = true;
+			preloadService.preloadedParts['items'] = true;
 			res('done');
 		};
 
@@ -158,7 +149,7 @@ class PreloadService {
 		const loader = new FBXLoader(loadingManager);
 
 		loadingManager.onLoad = () => {
-			preloadMachine.preloadedParts['animations'] = true;
+			preloadService.preloadedParts['animations'] = true;
 			res('done');
 		};
 
@@ -174,17 +165,27 @@ class PreloadService {
 		const loader = new FBXLoader(loadingManager);
 
 		loadingManager.onLoad = () => {
-			preloadMachine.preloadedParts['models'] = true;
+			preloadService.preloadedParts['models'] = true;
 			res('done');
 		};
 
-		loader.load('models/characters/bot.fbx', (fbxTemp) => {
-			fbxTemp.traverse((c) => {
-				c.castShadow = true;
+		this.#modelsToPreload.forEach((item) => {
+			loader.load(`models/characters/${item}.fbx`, (fbxTemp) => {
+				fbxTemp.traverse((c) => {
+					c.castShadow = true;
+				});
+				fbxTemp.scale.setScalar(0.01);
+				this.#modelsLoaded.set(item, fbxTemp);
 			});
-			fbxTemp.scale.setScalar(0.01);
-			this.#modelsLoaded.set('bot', fbxTemp);
 		});
+
+		// loader.load('models/characters/bot.fbx', (fbxTemp) => {
+		// 	fbxTemp.traverse((c) => {
+		// 		c.castShadow = true;
+		// 	});
+		// 	fbxTemp.scale.setScalar(0.01);
+		// 	this.#modelsLoaded.set('bot', fbxTemp);
+		// });
 	}
 
 	private preloadHDRIs(res: PromiseResponse) {
@@ -192,7 +193,7 @@ class PreloadService {
 		const loader = new RGBELoader(loadingManager);
 
 		loadingManager.onLoad = () => {
-			preloadMachine.preloadedParts['hdris'] = true;
+			preloadService.preloadedParts['hdris'] = true;
 			res('done');
 		};
 
@@ -209,7 +210,7 @@ class PreloadService {
 		const loader = new THREE.TextureLoader(loadingManager);
 
 		loadingManager.onLoad = () => {
-			preloadMachine.preloadedParts['textures'] = true;
+			preloadService.preloadedParts['textures'] = true;
 			res('done');
 		};
 
@@ -217,14 +218,12 @@ class PreloadService {
 			const loadedData: {
 				[Key in keyof PreloadedTexture]?: PreloadedTexture[Key];
 			} = {};
-			Object.entries(textureMapsNamingsToPreload).forEach(
-				([mapName, filename]) => {
-					loader.load(`textures/${item}/${filename}`, (texture) => {
-						loadedData[mapName as keyof PreloadedTexture] = texture;
-						texture.colorSpace = THREE.SRGBColorSpace;
-					});
-				}
-			);
+			Object.entries(textureMapsNamingsToPreload).forEach(([mapName, filename]) => {
+				loader.load(`textures/${item}/${filename}`, (texture) => {
+					loadedData[mapName as keyof PreloadedTexture] = texture;
+					texture.colorSpace = THREE.SRGBColorSpace;
+				});
+			});
 			this.#texturesLoaded.set(item, loadedData as PreloadedTexture);
 		});
 	}
@@ -236,5 +235,5 @@ class PreloadService {
 	}
 }
 
-const preloadMachine = new PreloadService();
-export default preloadMachine;
+const preloadService = new PreloadService();
+export default preloadService;

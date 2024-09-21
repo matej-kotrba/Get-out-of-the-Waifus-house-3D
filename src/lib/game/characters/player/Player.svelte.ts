@@ -1,14 +1,14 @@
 import Inventory from '$lib/game/inventory/Inventory.svelte';
 import { CharacterControls } from './characterControls';
 import { initialize } from '$lib/three/setup.svelte';
-import preloadMachine from '$lib/game/general/PreloadService.svelte';
-import * as THREE from 'three';
+import preloadService from '$lib/game/general/PreloadService.svelte';
+import type { Model } from '$lib/types/game';
 
 type Joints = 'leftHandPalm' | 'rightHandPalm';
 
 class Player {
 	isInitialized: boolean = false;
-	joints: Map<Joints, THREE.Object3D<THREE.Object3DEventMap>> = new Map();
+	joints: Map<Joints, Model> = new Map();
 
 	// Player stats
 	hp: number;
@@ -17,7 +17,7 @@ class Player {
 	// Player linked data
 	inventory: Inventory | undefined = $state(undefined);
 	characterControls: CharacterControls | undefined;
-	model: THREE.Object3D<THREE.Object3DEventMap> | undefined;
+	model: Model | undefined;
 
 	constructor() {
 		this.hp = 1000;
@@ -26,19 +26,14 @@ class Player {
 
 	public initialize() {
 		const { orbit, camera, scene } = initialize.getProperties();
-		const model = preloadMachine.getLoadedModel('bot');
+		const model = preloadService.getLoadedModel('bot');
 		if (!model) {
 			throw new Error('Player model not loaded');
 		}
 
 		this.initializeModelsPartsOfBody(model);
 		this.inventory = new Inventory();
-		this.characterControls = new CharacterControls(
-			model,
-			orbit,
-			camera,
-			'idle'
-		);
+		this.characterControls = new CharacterControls(model, orbit, camera, 'idle');
 
 		this.model = model;
 		scene.add(model);
@@ -48,9 +43,7 @@ class Player {
 		return this.model?.position;
 	}
 
-	private initializeModelsPartsOfBody(
-		model: THREE.Object3D<THREE.Object3DEventMap>
-	) {
+	private initializeModelsPartsOfBody(model: Model) {
 		const leftHandPalm = model.getObjectByName('mixamorigLeftHandIndex1');
 		const rightHandPalm = model.getObjectByName('mixamorigRightHandIndex1');
 

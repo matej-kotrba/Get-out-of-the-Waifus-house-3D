@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { getMacheteItem } from './items/Machete';
 import player from '$lib/game/characters/player/Player.svelte';
 import worldObjects from '$lib/game/general/WorldObjects';
+import type { Model } from '$lib/types/game';
 
 export const itemTypeMethodsRecord = {
 	machete: getMacheteItem()
@@ -21,7 +22,7 @@ export type GroundItemTemplate = {
 };
 
 export type GroundItemRestProps = {
-	model: THREE.Object3D<THREE.Object3DEventMap>;
+	model: Model;
 	initialPosition: THREE.Vector3;
 };
 
@@ -32,10 +33,7 @@ export class GroundItem {
 	public rays: THREE.Group<THREE.Object3DEventMap>;
 	public initialPosition: GroundItemRestProps['initialPosition'];
 
-	constructor(
-		groundItem: Omit<GroundItemTemplate, 'loadModel'>,
-		restProps: GroundItemRestProps
-	) {
+	constructor(groundItem: Omit<GroundItemTemplate, 'loadModel'>, restProps: GroundItemRestProps) {
 		this.type = groundItem.type;
 
 		this.model = restProps.model;

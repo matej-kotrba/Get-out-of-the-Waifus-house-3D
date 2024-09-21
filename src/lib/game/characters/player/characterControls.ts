@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import preloadMachine, {
+import preloadService, {
 	type AnimationsToPreloadOptions
 } from '$lib/game/general/PreloadService.svelte';
 import worldObjects from '$lib/game/general/WorldObjects';
@@ -73,7 +73,6 @@ export class CharacterControls {
 
 		const { RAPIER, world } = getRapierProperties();
 		this.physicsCharacterController = world.createCharacterController(0.01);
-		this.physicsCharacterController.enableSnapToGround(0.5);
 
 		const bodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased();
 		this.rigidBody = world.createRigidBody(bodyDesc);
@@ -87,7 +86,7 @@ export class CharacterControls {
 		this.ray = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
 
 		const animations = allowedAnimations
-			.map((animation) => [preloadMachine.getLoadedAnimation(animation), animation])
+			.map((animation) => [preloadService.getLoadedAnimation(animation), animation])
 			.filter((animation) => animation[1] !== undefined) as [
 			THREE.AnimationClip,
 			AnimationsToPreloadOptions
@@ -202,9 +201,6 @@ export class CharacterControls {
 		const moveX = this.walkDirection.x * velocity * delta;
 		const moveZ = this.walkDirection.z * velocity * delta;
 
-		// this.walkDirection.y += -0.0001; //this.lerp(this.storedFall, -9.81 * delta, 0.1);
-		// this.storedFall = this.walkDirection.y;
-
 		// Physics
 		this.physicsCharacterController.computeColliderMovement(
 			this.collider,
@@ -213,13 +209,9 @@ export class CharacterControls {
 		const correctedMovement = this.physicsCharacterController.computedMovement();
 		this.rigidBody.setNextKinematicTranslation(correctedMovement);
 
-		if (this.walkDirection.y > correctedMovement.y) {
-		}
-
 		this.model.position.x += correctedMovement.x;
-		this.model.position.y += correctedMovement.y;
 		this.model.position.z += correctedMovement.z;
-		this.updateCameraTarget(correctedMovement.x, correctedMovement.y, correctedMovement.z);
+		this.updateCameraTarget(correctedMovement.x, 0, correctedMovement.z);
 	}
 
 	private initializeItemInHandToRender() {
@@ -235,7 +227,7 @@ export class CharacterControls {
 			return;
 		}
 		const record = inventoryItemsRecord[item.id];
-		const model = preloadMachine.getLoadedItem(item.id);
+		const model = preloadService.getLoadedItem(item.id);
 		if (!model || !record) return;
 
 		playerRightHand?.add(model);

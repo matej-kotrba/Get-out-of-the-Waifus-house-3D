@@ -1,13 +1,13 @@
 import { GroundItem, type GroundItemTemplate } from './ground/GroundItem';
 import * as THREE from 'three';
-import preloadMachine from '../general/PreloadService.svelte';
+import preloadService from '../general/PreloadService.svelte';
 
 class NewItemFactory {
 	public createGroundItem(
 		groundItem: GroundItemTemplate,
 		initialPosition: THREE.Vector3
 	): GroundItem {
-		const model = preloadMachine.getLoadedItem(groundItem.type);
+		const model = preloadService.getLoadedItem(groundItem.type);
 		if (!model) {
 			throw new Error('Ground item model not loaded');
 		}

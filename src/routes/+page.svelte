@@ -1,10 +1,7 @@
 <script lang="ts">
 	import QuickSlot from '$lib/components/game/ingame-ui/quickslot.svelte';
 	import { CharacterControls } from '$lib/game/characters/player/characterControls';
-	import {
-		initialize,
-		initializeCameraUpdation
-	} from '$lib/three/setup.svelte';
+	import { initialize, initializeCameraUpdation } from '$lib/three/setup.svelte';
 	import { onMount } from 'svelte';
 	import * as THREE from 'three';
 	import { GUI } from 'dat.gui';
@@ -13,16 +10,14 @@
 	import { getMacheteItem } from '$lib/game/item/ground/items/Machete';
 	import listenerMachine from '$lib/game/general/ListenerService';
 	import Loading from '$lib/components/game/ingame-ui/loading.svelte';
-	import preloadMachine from '$lib/game/general/PreloadService.svelte';
+	import preloadService from '$lib/game/general/PreloadService.svelte';
 	import player from '$lib/game/characters/player/Player.svelte';
 	import worldObjects from '$lib/game/general/WorldObjects';
 	import Screens from '$lib/components/game/Screens.svelte';
-	import {
-		getRapierProperties,
-		initializeRapier
-	} from '$lib/game/physics/rapier';
+	import { getRapierProperties, initializeRapier } from '$lib/game/physics/rapier';
 	import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 	import type { RigidBody } from '@dimforge/rapier3d';
+	import { NpcFactory } from '$lib/game/characters/npc/npcFactory';
 
 	const textToAnimate = 'Get out of the Waifus house';
 
@@ -45,25 +40,21 @@
 			});
 			updateService.start();
 
-			preloadMachine.subscribeOnPreloadDone(async () => {
+			preloadService.subscribeOnPreloadDone(async () => {
 				player.initialize();
 
-				const hdri = preloadMachine.getLoadedHDRi('forest');
+				const hdri = preloadService.getLoadedHDRi('forest');
 				if (hdri) {
 					scene.background = hdri;
 					scene.environment = hdri;
 				}
 
 				worldObjects.addGroundItem(
-					newItemFactory.createGroundItem(
-						getMacheteItem(),
-						new THREE.Vector3(7.6, 1, 3.2)
-					),
-					newItemFactory.createGroundItem(
-						getMacheteItem(),
-						new THREE.Vector3(0, 1, 2)
-					)
+					newItemFactory.createGroundItem(getMacheteItem(), new THREE.Vector3(7.6, 1, 3.2)),
+					newItemFactory.createGroundItem(getMacheteItem(), new THREE.Vector3(0, 1, 2))
 				);
+
+				const merchant = NpcFactory.createNpc('peasant', new THREE.Vector3(4, 3, 1));
 
 				if (RAPIER && world) {
 					// const plane = new THREE.PlaneGeometry(10, 10, 400, 400);
@@ -106,12 +97,7 @@
 						heightCanvas.height = heightImage.height;
 						if (heightContext) {
 							heightContext.fillStyle = 'red';
-							heightContext.fillRect(
-								0,
-								0,
-								heightImage.width,
-								heightImage.height
-							);
+							heightContext.fillRect(0, 0, heightImage.width, heightImage.height);
 							heightContext.drawImage(heightImage, 0, 0);
 							const rgba = heightContext.getImageData(
 								0,
@@ -133,13 +119,10 @@
 								const ratio = heightImage.width / nsubdivs;
 
 								// Check whether the height is 255 or just hit alpha channel
-								let color =
-									rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio)];
+								let color = rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio)];
 								if (color === 255) {
-									const preColor =
-										rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio) - 1];
-									const postColor =
-										rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio) + 1];
+									const preColor = rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio) - 1];
+									const postColor = rgba[Math.ceil((column * nsubdivs + row) * 4 * ratio) + 1];
 									if (preColor !== 255) {
 										color = preColor;
 									} else if (postColor !== 255) {
@@ -150,12 +133,7 @@
 								const randomHeight = (color / 255) * scale.y;
 
 								if (randomHeight === 2 && column === 1078) {
-									console.log(
-										Math.ceil((column * nsubdivs + row) * 4 * ratio),
-										column,
-										row,
-										ratio
-									);
+									console.log(Math.ceil((column * nsubdivs + row) * 4 * ratio), column, row, ratio);
 								}
 
 								let idk = Math.floor(i / 3 / (nsubdivs + 1));
@@ -195,58 +173,41 @@
 							scale
 						);
 
-						world.createCollider(
-							colliderType,
-							rigidBody.handle as unknown as RigidBody
-						);
+						world.createCollider(colliderType, rigidBody.handle as unknown as RigidBody);
 
 						const couple = { rigid: rigidBody, mesh: threeFloor };
 
-						// const box = new THREE.BoxGeometry(3, 3, 3);
-						// const material = new THREE.MeshBasicMaterial({
-						// 	color: 0x00ff00
-						// });
-						// const cube = new THREE.Mesh(box, material);
-						// scene.add(cube);
-						// const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
-						// cubeBodyType.setTranslation(1, 20, 0.5);
-						// const cubeRigidBody = world.createRigidBody(cubeBodyType);
-						// const cubeColliderType = RAPIER.ColliderDesc.cuboid(1.5, 1.5, 1.5);
-						// world.createCollider(cubeColliderType, cubeRigidBody);
+						const box = new THREE.BoxGeometry(3, 3, 3);
+						const material = new THREE.MeshBasicMaterial({
+							color: 0x00ff00
+						});
+						const cube = new THREE.Mesh(box, material);
+						scene.add(cube);
+						const cubeBodyType = RAPIER.RigidBodyDesc.dynamic();
+						cubeBodyType.setTranslation(4, 20, 0.5);
+						const cubeRigidBody = world.createRigidBody(cubeBodyType);
+						const cubeColliderType = RAPIER.ColliderDesc.cuboid(1.5, 1.5, 1.5);
+						world.createCollider(cubeColliderType, cubeRigidBody);
 
-						// const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
+						const cubeCouple = { rigid: cubeRigidBody, mesh: cube };
 
 						// updateService.subscribe(() => {
 						function updatePhysics() {
 							world?.step();
 
-							// const cubePosition = cubeCouple.rigid.translation();
-							// const cubeRotation = cubeCouple.rigid.rotation();
-							// cubeCouple.mesh.position.set(
-							// 	cubePosition.x,
-							// 	cubePosition.y,
-							// 	cubePosition.z
-							// );
+							const cubePosition = cubeCouple.rigid.translation();
+							const cubeRotation = cubeCouple.rigid.rotation();
+							cubeCouple.mesh.position.set(cubePosition.x, cubePosition.y, cubePosition.z);
 
-							// cubeCouple.mesh.setRotationFromQuaternion(
-							// 	new THREE.Quaternion(
-							// 		cubeRotation.x,
-							// 		cubeRotation.y,
-							// 		cubeRotation.z,
-							// 		cubeRotation.w
-							// 	)
-							// );
+							cubeCouple.mesh.setRotationFromQuaternion(
+								new THREE.Quaternion(cubeRotation.x, cubeRotation.y, cubeRotation.z, cubeRotation.w)
+							);
 
 							const position = couple.rigid.translation();
 							const rotation = couple.rigid.rotation();
 							couple.mesh.position.set(position.x, position.y, position.z);
 
-							couple.mesh.quaternion.set(
-								rotation.x,
-								rotation.y,
-								rotation.z,
-								rotation.w
-							);
+							couple.mesh.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
 
 							setTimeout(updatePhysics, 16);
 						}
@@ -259,13 +220,11 @@
 
 		initialize.initialize(canvas);
 
-		const { camera, orbit, renderer, scene, cssRenderer } =
-			initialize.getProperties();
+		const { camera, orbit, renderer, scene, cssRenderer } = initialize.getProperties();
 
 		onRapierLoad();
 
-		const { destroy: cameraOnMouseMoveRotationDestroy } =
-			initializeCameraUpdation(orbit);
+		const { destroy: cameraOnMouseMoveRotationDestroy } = initializeCameraUpdation(orbit);
 
 		return () => {
 			cameraOnMouseMoveRotationDestroy();
