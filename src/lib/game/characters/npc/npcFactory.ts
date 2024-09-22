@@ -5,7 +5,6 @@ import { initialize } from '$lib/three/setup.svelte';
 import type { Model } from '$lib/types/game';
 import type { Vector3 } from 'three';
 import * as THREE from 'three';
-import player from '../player/Player.svelte';
 
 export class NpcFactory {
 	public static createNpc(skin: ModelsToPreloadOptions, coords: Vector3): Npc {
@@ -57,19 +56,19 @@ class Npc {
 			this.#model.position.y + 2.5,
 			this.#model.position.z
 		);
-		circle.rotation.x = Math.PI / 2;
 
 		group.add(rect, circle);
 
-		const { scene } = initialize.getProperties();
+		const { scene, camera } = initialize.getProperties();
 		scene.add(group);
 
 		updateService.subscribe(() => {
-			rect.rotation.y += 0.01;
-			circle.rotation.y += 0.01;
-			// const position = orbit.position;
-			// if (!position) return;
-			// group.lookAt(position.x, group.position.y, position.z);
+			const position = new THREE.Vector3();
+			if (!camera) return;
+			camera.getWorldPosition(position);
+			circle.lookAt(position);
+			rect.lookAt(position);
+			circle.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
 		});
 	}
 }
