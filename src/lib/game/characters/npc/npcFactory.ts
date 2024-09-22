@@ -16,17 +16,17 @@ export class NpcFactory {
 
 // TODO: Later extract some properties like `model` to different more general class
 class Npc {
-	#model: Model;
+	model: Model;
 
 	constructor(model: Model, coords: Vector3) {
-		this.#model = model;
+		this.model = model;
 
 		const { scene } = initialize.getProperties();
 
-		this.#model.position.set(coords.x, coords.y, coords.z);
-		scene.add(this.#model);
+		this.model.position.set(coords.x, coords.y, coords.z);
+		scene.add(this.model);
 
-		const animationMixer = new THREE.AnimationMixer(this.#model);
+		const animationMixer = new THREE.AnimationMixer(this.model);
 		const animation = preloadService.getLoadedAnimation('neutralIdle');
 		if (animation) {
 			animationMixer.clipAction(animation).play();
@@ -50,12 +50,8 @@ class Npc {
 		const circleMaterial = new THREE.MeshBasicMaterial({ color: 0xebc334 });
 		const circle = new THREE.Mesh(circleGeometry, circleMaterial);
 
-		rect.position.set(this.#model.position.x, this.#model.position.y + 3.4, this.#model.position.z);
-		circle.position.set(
-			this.#model.position.x,
-			this.#model.position.y + 2.5,
-			this.#model.position.z
-		);
+		rect.position.set(this.model.position.x, this.model.position.y + 3.4, this.model.position.z);
+		circle.position.set(this.model.position.x, this.model.position.y + 2.5, this.model.position.z);
 
 		group.add(rect, circle);
 
@@ -72,3 +68,5 @@ class Npc {
 		});
 	}
 }
+
+export type { Npc as Npc };

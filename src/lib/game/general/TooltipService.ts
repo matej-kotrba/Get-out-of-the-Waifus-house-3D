@@ -2,6 +2,7 @@ import { CSS2DObject } from 'three/examples/jsm/Addons.js';
 import type { GroundItem } from '../item/ground/GroundItem';
 import { inventoryItemsRecord } from '../item/inventory/items-record';
 import { initialize } from '$lib/three/setup.svelte';
+import type { Npc } from '../characters/npc/npcFactory';
 
 class TooltipMachine {
 	#tooltip: CSS2DObject | undefined;
@@ -60,6 +61,8 @@ class TooltipMachine {
 		this.#tooltip = cPoint;
 		scene.add(cPoint);
 	}
+
+	public setFromNpc(npc: Npc) {}
 
 	public clear() {
 		const { scene } = initialize.getProperties();

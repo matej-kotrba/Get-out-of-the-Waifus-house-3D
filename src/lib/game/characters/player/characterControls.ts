@@ -10,6 +10,7 @@ import listenerService, { type KeypressListenerKeys } from '$lib/game/general/Li
 import { DIRECTIONS, INTERACTION } from '$lib/game/constants/controls';
 import type { Collider, KinematicCharacterController, Ray, RigidBody } from '@dimforge/rapier3d';
 import { getRapierProperties } from '$lib/game/physics/rapier';
+import { PICKUP_RANGE } from '$lib/game/constants/player';
 
 const allowedAnimations: AnimationsToPreloadOptions[] = [
 	'idle',
@@ -147,6 +148,9 @@ export class CharacterControls {
 	public update(delta: number, keys: KeypressListenerKeys) {
 		if (this.isAbleToInteractWithGroundItem()) {
 			const groundItem = this.getClosestGroundItem();
+			tooltipService.setFromGroundItem(groundItem);
+		} else if (this.isAbleToInteractWithNpc()) {
+			const npc = this.getClosestNpc();
 			tooltipService.setFromGroundItem(groundItem);
 		} else {
 			tooltipService.clear();
@@ -288,11 +292,37 @@ export class CharacterControls {
 		}
 	}
 
+	private isAbleToInteractWithNpc() {
+		for (const npc of worldObjects.npcs) {
+			const distance = this.model.position.distanceTo(npc.model.position);
+			if (distance < PICKUP_RANGE) {
+				return true;
+			}
+		}
+	}
+
 	private getClosestGroundItem() {
 		let closestItem = worldObjects.groundItems[0];
 		for (const item of worldObjects.groundItems) {
 			const distance = this.model.position.distanceTo(item.model.position);
-			if (distance < 2 && distance < this.model.position.distanceTo(closestItem.model.position)) {
+			if (
+				distance < PICKUP_RANGE &&
+				distance < this.model.position.distanceTo(closestItem.model.position)
+			) {
+				closestItem = item;
+			}
+		}
+		return closestItem;
+	}
+
+	private getClosestNpc() {
+		let closestItem = worldObjects.npcs[0];
+		for (const item of worldObjects.npcs) {
+			const distance = this.model.position.distanceTo(item.model.position);
+			if (
+				distance < PICKUP_RANGE &&
+				distance < this.model.position.distanceTo(closestItem.model.position)
+			) {
 				closestItem = item;
 			}
 		}

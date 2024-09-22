@@ -1,9 +1,10 @@
 import type { GroundItem } from '../item/ground/GroundItem';
 import { initialize } from '$lib/three/setup.svelte';
+import type { Npc } from '../characters/npc/npcFactory';
 
 class WorldObjects {
 	structures: unknown[] = [];
-	npcs: unknown[] = [];
+	npcs: Npc[] = [];
 	enemies: unknown[] = [];
 	groundItems: GroundItem[] = [];
 
