@@ -58,13 +58,24 @@ class Npc {
 		const { scene, camera } = initialize.getProperties();
 		scene.add(group);
 
-		updateService.subscribe(() => {
+		updateService.subscribe((_, time) => {
 			const position = new THREE.Vector3();
 			if (!camera) return;
 			camera.getWorldPosition(position);
 			circle.lookAt(position);
 			rect.lookAt(position);
 			circle.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+
+			rect.position.set(
+				this.model.position.x,
+				this.model.position.y + 3.4 + Math.sin(time) / 4,
+				this.model.position.z
+			);
+			circle.position.set(
+				this.model.position.x,
+				this.model.position.y + 2.5 + Math.sin(time) / 4,
+				this.model.position.z
+			);
 		});
 	}
 }
